@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { caseStudyKling } from "@/content";
+import { KlingGallery } from "@/components/kling/kling-gallery";
 
 export const metadata: Metadata = {
   title: `${caseStudyKling.name} | Case study`,
@@ -90,6 +91,22 @@ export default function KlingCaseStudy() {
         <p className="font-serif mt-3 text-lg leading-relaxed text-muted-foreground dropcap">
           {caseStudyKling.intent}
         </p>
+      </section>
+
+      {/* Character reference sheets */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          Character reference sheets
+        </h2>
+        <p className="font-serif mt-3 text-base leading-relaxed text-muted-foreground">
+          Reference sheets are the substance of a character consistency case
+          study. The Prince starts from a single seed image, then Kling has to
+          reproduce him from other angles. The Fox is his companion in the
+          story.
+        </p>
+        <div className="mt-8">
+          <KlingGallery references={caseStudyKling.references} />
+        </div>
       </section>
     </article>
   );
