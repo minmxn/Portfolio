@@ -10,7 +10,7 @@ export const site = {
   // TODO: drop your CV at public/resume.pdf (a placeholder is provided).
   resumeUrl: "/resume.pdf",
   nav: [
-    { label: "About", href: "#about" },
+    { label: "The Story", href: "#story" },
     { label: "Projects", href: "#projects" },
     { label: "Certifications", href: "#certifications" },
     { label: "Contact", href: "#contact" },
@@ -23,12 +23,49 @@ export const site = {
 };
 
 export const hero = {
+  kicker: "Front page",
   headline: "Most analysts write the spec. I also build the thing.",
   subhead:
     "Public sector business analyst on the way to product management. My proof is Nomo, an AI news product I designed, built, and run in production.",
+  byline: "By Min Yi · Business analyst · Singapore",
+  lede:
+    "I turn messy, multi stakeholder requirements into software that teams can build, test, and ship. Then I go one step further and build my own products to prove the thinking. The clearest evidence is Nomo, an AI news companion I designed, built, and run in production every day.",
   highlights: ["Business analysis", "Product thinking", "AI and automation"],
   primaryCta: { label: "See my work", href: "#projects" },
   secondaryCta: { label: "View resume", href: "/resume.pdf" },
+};
+
+// Newspaper styling and chrome. Edit these to rename the paper, change the
+// motto, or relabel the kicker above each section. No component code changes.
+export const edition = {
+  paper: "The Min Yi Dispatch",
+  motto: "Business analysis · Product thinking · Things that ship",
+  location: "Singapore",
+  volume: "Vol. I · No. 1",
+  sections: {
+    about: {
+      kicker: "The profile",
+      title: "About",
+      dek: "Who is behind the byline, and how she works.",
+    },
+    projects: {
+      kicker: "Selected works",
+      title: "The Work",
+      dek: "A few things I have built, shipped, and explored.",
+    },
+    certifications: {
+      kicker: "On the record",
+      title: "Credentials on File",
+      dek: "What I have earned, and what I am studying for now.",
+    },
+    contact: {
+      kicker: "Correspondence",
+      title: "Letters and Commissions",
+      dek: "Open to product roles and to building useful things together.",
+    },
+  },
+  colophon:
+    "Set in Playfair Display and Newsreader. Composed and published in Singapore with Next.js.",
 };
 
 export const about = {
@@ -78,9 +115,9 @@ export const projects: Project[] = [
     name: "Generative video experiments",
     tagline: "Exploring AI video with Kling 3.0",
     description:
-      "A set of short clips I created while exploring generative video, looking at how AI media could speed up product storytelling and prototyping.",
+      "A short film I made with Kling 3.0, and the process behind it. Character reference sheets, prompts as artifacts, and the finished piece.",
     tags: ["Generative AI", "Kling 3.0", "Video"],
-    // Gallery coming soon. Add clips or a link here later.
+    href: "/projects/kling",
   },
 ];
 
@@ -142,6 +179,111 @@ export const caseStudy = {
       body: "Add lightweight usage analytics so decisions are driven by data rather than guesses, and broaden the range of trusted sources.",
     },
   ] as CaseSection[],
+};
+
+export type CaseStudyKling = {
+  name: string;
+  tagline: string;
+  role: string;
+  tool: string;
+  duration: string;
+  intent: string;
+  references: {
+    row: "prince" | "fox";
+    src: string;
+    alt: string;
+    caption: string;
+  }[];
+  prompts: {
+    style: { text: string; caption: string };
+    scenes: { title: string; text: string; caption: string }[];
+  };
+  patternExplainer: string;
+  video: {
+    src: string;
+    poster: string;
+    caption: string;
+  };
+  learnings: {
+    surprised: string;
+    limits: string;
+    useFor: string;
+  };
+  metaCredit: string;
+};
+
+export const caseStudyKling: CaseStudyKling = {
+  name: "Generative video experiments",
+  tagline: "A Little Prince, made with Kling 3.0.",
+  role: "Direction, prompt writing, edit",
+  tool: "Kling 3.0",
+  duration: "About 60 seconds",
+  intent:
+    "I picked The Little Prince because it is a beloved painterly world, and because it is a real test of what generative video can and cannot do yet. Keeping one character consistent across multiple shots is the hard part. Framing this as a challenge up front turns the experiment into a product thinking exercise, not just a demo.",
+  references: [
+    {
+      row: "prince",
+      src: "/kling/prince-front.png",
+      alt: "The Little Prince, front view, blond hair, green suit, yellow flowing scarf, painterly watercolor",
+      caption: "Prince, front. The seed that every other shot references.",
+    },
+    {
+      row: "prince",
+      src: "/kling/prince-side.png",
+      alt: "The Little Prince, side view",
+      caption: "Prince, side. Checks silhouette against the front seed.",
+    },
+    {
+      row: "prince",
+      src: "/kling/prince-back.png",
+      alt: "The Little Prince, back view",
+      caption: "Prince, back. The hardest angle to keep on model.",
+    },
+    {
+      row: "fox",
+      src: "/kling/fox-front.png",
+      alt: "A small fox, front view, painterly watercolor",
+      caption: "Fox, front. The Prince's companion in the story.",
+    },
+    {
+      row: "fox",
+      src: "/kling/fox-side.png",
+      alt: "A small fox, side view, painterly watercolor",
+      caption: "Fox, side. Same energy at a different angle.",
+    },
+  ],
+  prompts: {
+    style: {
+      text: "Cinematic painterly storybook watercolor and soft 3D, shallow depth of field, gentle film grain, muted warm golds and deep starry blues.",
+      caption:
+        "This is the visual DNA. It defines the aesthetic; every scene prompt inherits it.",
+    },
+    scenes: [
+      {
+        title: "Prince on the asteroid",
+        text: "Prince stands on a tiny asteroid in star-filled space, his golden-yellow scarf drifting weightlessly, looking up at the stars with quiet wonder. Slow orbital camera drift, gentle push-in. Cool starlight rim-light on his hair. Ambient: soft cosmic hum, faint chimes, tender piano.",
+        caption:
+          "One shot's fuller prompt. Beat, camera move, lighting, and audio bed layered on top of the pinned style.",
+      },
+    ],
+  },
+  patternExplainer:
+    "The pattern is a fixed style prompt plus varying scene prompts. The style prompt keeps every shot on the same visual grammar, so cuts between scenes feel like the same film. The scene prompts change the beat, the camera, the lighting, and the audio bed. This is the how a hiring reader wants to see, not just the what.",
+  video: {
+    src: "/kling/the-little-prince.mp4",
+    poster: "/kling/prince-front.png",
+    caption: "Sound on for the ambience.",
+  },
+  learnings: {
+    surprised:
+      "Pending. Min Yi to fill in what Kling did well, in two or three sentences.",
+    limits:
+      "Pending. Min Yi to fill in Kling's failure modes, in two or three sentences.",
+    useFor:
+      "Pending. Min Yi to fill in how she would use generative video in a product management context, in two or three sentences.",
+  },
+  metaCredit:
+    "Made with Kling 3.0. Style: painterly watercolor plus soft 3D. 2026.",
 };
 
 export type Certification = {
@@ -206,3 +348,60 @@ export const contact = {
   blurb:
     "I am open to product roles and to conversations about building useful things. The fastest way to reach me is email or LinkedIn.",
 };
+
+// The scroll-told story. Each beat pins to the screen and reveals as you
+// scroll. Edit the copy here to change what the journey says.
+export type StoryBeat = {
+  kicker: string;
+  label: string;
+  title: string;
+  lines: string[];
+  skills?: string[];
+  /** Optional tag row rendered as small pill badges (e.g. tech stack). */
+  spec?: string[];
+  cta?: { label: string; href: string; external?: boolean };
+};
+
+export const story: StoryBeat[] = [
+  {
+    kicker: "Chapter 01",
+    label: "What I do",
+    title:
+      "I turn tangled, multi stakeholder requirements into software that teams can build, test, and ship.",
+    lines: [
+      "For the last few years I have worked on large scale public sector digital platforms as a business analyst.",
+      "My job is to make the messy parts clear, so engineers, testers, and stakeholders can move as one team.",
+    ],
+  },
+  {
+    kicker: "Chapter 02",
+    label: "What drives me",
+    title: "I am happiest building the thing, not just writing the spec for it.",
+    lines: [
+      "I taught myself to code to close the gap between a good idea and a working product.",
+      "So I built Nomo: an AI news companion, live in production, running on free-tier infrastructure at zero cost.",
+    ],
+    spec: ["Node.js", "Groq LLM", "NewsAPI", "Telegram Bot API", "Oracle Cloud", "PM2"],
+    cta: { label: "Try Nomo", href: "https://t.me/nomogh_bot", external: true },
+  },
+  {
+    kicker: "Chapter 03",
+    label: "My toolkit",
+    title: "An analyst's discipline, with a builder's hands.",
+    lines: [
+      "Years of requirements, UAT, releases, and stakeholder work, plus the engineering I picked up to ship my own products.",
+    ],
+    skills: [...about.skills, "Generative AI (Kling 3.0)"],
+    spec: ["Business Analysis", "Product Thinking", "AI and Automation", "Generative Video (Kling 3.0)"],
+  },
+  {
+    kicker: "Chapter 04",
+    label: "What is next",
+    title: "Now I am growing into a product manager who can build.",
+    lines: [
+      "I am studying for the Claude Certified Architect exam to go deeper on building with AI.",
+      "And I am looking for a product role where I can turn clear problems into things people use.",
+    ],
+    cta: { label: "Get in touch", href: "#contact" },
+  },
+];
