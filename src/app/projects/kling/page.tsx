@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { caseStudyKling } from "@/content";
 import { KlingGallery } from "@/components/kling/kling-gallery";
+import { KlingVideo } from "@/components/kling/kling-video";
 import { PromptCard } from "@/components/kling/prompt-card";
 
 export const metadata: Metadata = {
@@ -142,6 +143,20 @@ export default function KlingCaseStudy() {
         <p className="font-serif mt-8 text-base leading-relaxed text-muted-foreground">
           {caseStudyKling.patternExplainer}
         </p>
+      </section>
+
+      {/* The film */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          The film
+        </h2>
+        <div className="mt-6">
+          <KlingVideo
+            src={caseStudyKling.video.src}
+            poster={caseStudyKling.video.poster}
+            caption={caseStudyKling.video.caption}
+          />
+        </div>
       </section>
     </article>
   );
