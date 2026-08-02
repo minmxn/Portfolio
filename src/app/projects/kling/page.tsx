@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { caseStudyKling } from "@/content";
 import { KlingGallery } from "@/components/kling/kling-gallery";
+import { PromptCard } from "@/components/kling/prompt-card";
 
 export const metadata: Metadata = {
   title: `${caseStudyKling.name} | Case study`,
@@ -107,6 +108,40 @@ export default function KlingCaseStudy() {
         <div className="mt-8">
           <KlingGallery references={caseStudyKling.references} />
         </div>
+      </section>
+
+      {/* The prompts (headline exhibit) */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          The prompts
+        </h2>
+        <p className="font-serif mt-3 text-base leading-relaxed text-muted-foreground">
+          The prompt is the craft in generative video. These are the actual
+          prompts I used, quoted verbatim.
+        </p>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <PromptCard
+            variant="style"
+            kicker="Style prompt · pinned to every scene"
+            text={caseStudyKling.prompts.style.text}
+            caption={caseStudyKling.prompts.style.caption}
+          />
+          {caseStudyKling.prompts.scenes.map((scene) => (
+            <PromptCard
+              key={scene.title}
+              variant="scene"
+              kicker="Scene prompt · example beat"
+              title={scene.title}
+              text={scene.text}
+              caption={scene.caption}
+            />
+          ))}
+        </div>
+
+        <p className="font-serif mt-8 text-base leading-relaxed text-muted-foreground">
+          {caseStudyKling.patternExplainer}
+        </p>
       </section>
     </article>
   );
