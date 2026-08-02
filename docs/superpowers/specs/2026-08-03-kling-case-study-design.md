@@ -33,24 +33,27 @@ Currently at `/assets/` (repo root — outside `public/`, so not served yet):
 - `Fox_Side.png`
 - `The Little Prince.mp4` (~60 sec, ~1 MB, generated with Kling 3.0)
 
-## Assets provided by Min Yi
+## Prompts (showcased as artifacts on the page)
 
-**Global style prompt (used on every scene):**
+The prompts are **first-class exhibits** on this case study, not supporting notes. The prompt IS the craft in generative video, and showing it is the point. Both are quoted verbatim and styled as artifacts (see Page structure §6).
+
+**Global style prompt** — used as a persistent header on every scene, keeps the *look* consistent:
 > *"Cinematic painterly storybook watercolor and soft 3D, shallow depth of field, gentle film grain, muted warm golds and deep starry blues."*
 
-**One example scene prompt (Prince on asteroid):**
+**Scene prompt: Prince on the asteroid** — one specific shot's fuller prompt, showing how the beat, camera move, lighting, and audio bed are all layered onto the global style:
 > *"Prince stands on a tiny asteroid in star-filled space, his golden-yellow scarf drifting weightlessly, looking up at the stars with quiet wonder. Slow orbital camera drift, gentle push-in. Cool starlight rim-light on his hair. Ambient: soft cosmic hum, faint chimes, tender piano."*
 
-Both quoted verbatim on the page.
+The design deliberately displays the prompts near the top of the page (right after intent and character sheets), so a scanner reading top-to-bottom sees *style → prompt → result*. The film itself is one of several exhibits, not the only one.
 
 ## Content still needed from Min Yi (before build)
 
 The page can ship with placeholders for these; a follow-up commit fills them in.
 
-1. **1–2 additional scene prompts** used in the video (if any). Optional.
-2. **"What surprised you"** — 2–3 sentences. What did Kling do well, what did it fail at (e.g., temporal character consistency, hand shapes, background stability)?
+1. **"What surprised you"** — 2–3 sentences. What did Kling do well, what did it fail at (e.g., temporal character consistency, hand shapes, background stability)?
+2. **"The limits I hit"** — 2–3 sentences on failure modes.
 3. **"What I'd use this for"** — 2–3 sentences. Specifically: how you'd use generative video in a PM context (rapid product demos, prototype pitches, onboarding films, or something else).
-4. **Video poster frame preference** — default to `Prince_Front.png`; user can pick a specific frame later.
+4. **Video poster frame preference** — default to `prince-front.png`; user can pick a specific frame later.
+5. **Additional scene prompts** *(optional).* If Min Yi wants to showcase 2–4 more scene prompts on the page (each with its own card), she can supply them. The page ships fine with one; more prompts strengthen the "how the video was built" story.
 
 ## Page structure
 
@@ -64,10 +67,10 @@ The page follows the same shell as `/projects/nomo` (dark, thin serif for accent
    - Row 1: Prince — Front, Side, Back.
    - Row 2: Fox — Front, Side.
    Each image has a small caption under it (e.g. *"Prince, front — first generation, this is the seed that all other shots reference."*). Reference sheets ARE the substance of a character-consistency case study.
-6. **Prompt & style** — two blockquotes side by side (stack on mobile):
-   - Left: the global style prompt.
-   - Right: the "Prince on asteroid" scene prompt (as an example of one scene's fuller prompt).
-   Followed by a short paragraph noting the pattern: fixed style prompt + varying scene prompts kept the *look* consistent while giving each shot a distinct beat.
+6. **The prompts** — the case study's headline exhibit. NOT a supporting section: dedicated real estate, treated as an artifact of craft. Two stacked blocks (or side-by-side on md+):
+   - **Block A: Global style prompt.** Above the block, a small kicker: *"Style prompt · pinned to every scene."* The prompt itself in a soft-bordered card with a slightly larger serif or monospace face (larger than body copy), generous letter-spacing, glow accent on the left border, and a subtle background tint. A caption below: *"This is the visual DNA. It defines the aesthetic; the scene prompts inherit it."*
+   - **Block B: Scene prompt (Prince on asteroid).** Kicker: *"Scene prompt · example beat."* Same card treatment, warm-gold left border (differentiates from global). Caption: *"One shot's fuller prompt. Beat, camera move, lighting, and audio bed layered on top of the pinned style."*
+   Followed by a short paragraph explaining the pattern: a fixed style prompt + varying scene prompts kept the *look* coherent while giving each shot a distinct beat. This is the "how" a hiring reader wants to see. The prompts are readable, copy-selectable, and screen-reader accessible.
 7. **The film** — embedded MP4 player, autoplay muted with a caption "Sound on for the ambience." Uses the `<video>` element with `playsInline poster={"/kling/prince-front.png"}`. Lazy-loads.
 8. **What I learned** — three short paragraphs from Min Yi's follow-up notes:
    - **What surprised me** *(placeholder)*
@@ -131,3 +134,4 @@ The Ch03 spec-pill option is the smaller change; the icon-in-ring option ties it
 5. Home page's Projects section: Exhibit B card now links to `/projects/kling` and no longer says "coming soon."
 6. Ch03 spec pill (when the shining narrative is built) includes Kling in the tools list.
 7. Kling watermark visible and credited in the page's meta footer.
+8. Both prompts render as elevated exhibit cards (not blockquote-buried), are copy-selectable, screen-reader accessible, and quoted verbatim.
