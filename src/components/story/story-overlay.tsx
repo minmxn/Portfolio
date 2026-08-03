@@ -11,7 +11,7 @@ export function StoryOverlay() {
     <div id="story-track" className="relative z-10">
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-y-0 left-0 z-[5] hidden w-[55vw] bg-gradient-to-r from-background/90 via-background/60 to-transparent md:block"
+        className="pointer-events-none fixed inset-y-0 left-0 hidden w-[55vw] bg-gradient-to-r from-background/90 via-background/60 to-transparent md:block"
       />
       <BookIntroOverlay />
       {chapters.map((beat) => (
