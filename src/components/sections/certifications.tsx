@@ -1,58 +1,64 @@
 import { ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { certifications } from "@/content";
+import { SectionHeading } from "@/components/editorial/section-heading";
+import { certifications, edition } from "@/content";
+
+function statusClass(status: string) {
+  const base =
+    "inline-flex h-fit w-fit items-center border px-2.5 py-1 font-sans text-[0.66rem] font-bold tracking-[0.1em] uppercase";
+  return status.toLowerCase() === "completed"
+    ? `${base} border-foreground bg-foreground text-background`
+    : `${base} border-foreground/40 text-muted-foreground`;
+}
 
 export function Certifications() {
+  const meta = edition.sections.certifications;
   return (
-    <section id="certifications" className="scroll-mt-20 border-t">
-      <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-          Certifications
-        </h2>
-        <p className="mt-3 max-w-2xl text-muted-foreground">
-          Credentials, and the ones I am working toward.
-        </p>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {certifications.map((c) => (
-            <Card key={c.name} className="[--card-spacing:--spacing(6)]">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <CardTitle className="text-lg leading-snug">
+    <section
+      id="certifications"
+      className="scroll-mt-20 border-t border-foreground/15"
+    >
+      <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
+        <SectionHeading kicker={meta.kicker} title={meta.title} dek={meta.dek} />
+        <div className="border-y-2 border-foreground/70">
+          <div className="hidden grid-cols-[1.6fr_1fr_auto] gap-4 border-b border-foreground/25 py-2 font-sans text-[0.68rem] font-semibold tracking-[0.15em] text-muted-foreground uppercase md:grid">
+            <span>Credential</span>
+            <span>Issuer</span>
+            <span>Status</span>
+          </div>
+          <ul className="divide-y divide-foreground/15">
+            {certifications.map((c) => (
+              <li
+                key={c.name}
+                className="grid grid-cols-1 gap-2 py-4 md:grid-cols-[1.6fr_1fr_auto] md:items-baseline md:gap-4"
+              >
+                <div>
+                  <p className="font-display text-lg font-semibold leading-snug">
                     {c.name}
-                  </CardTitle>
-                  <Badge
-                    variant={c.status === "Completed" ? "default" : "outline"}
-                  >
-                    {c.status}
-                  </Badge>
+                  </p>
+                  {c.detail && (
+                    <p className="font-serif mt-1 max-w-xl text-sm text-muted-foreground">
+                      {c.detail}
+                    </p>
+                  )}
+                  {c.url && (
+                    <a
+                      href={c.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1.5 inline-flex items-center gap-1 font-sans text-[0.68rem] font-semibold tracking-[0.12em] text-brand uppercase hover:underline"
+                    >
+                      Verify
+                      <ExternalLink className="size-3" />
+                    </a>
+                  )}
                 </div>
-                <CardDescription>{c.issuer}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {c.detail && (
-                  <p className="text-muted-foreground">{c.detail}</p>
-                )}
-                {c.url && (
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-                  >
-                    Verify
-                    <ExternalLink className="size-4" />
-                  </a>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                <p className="font-serif text-sm text-muted-foreground md:text-base">
+                  {c.issuer}
+                </p>
+                <span className={statusClass(c.status)}>{c.status}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

@@ -1,31 +1,32 @@
-import { Badge } from "@/components/ui/badge";
-import { about } from "@/content";
+import { SectionHeading } from "@/components/editorial/section-heading";
+import { about, edition } from "@/content";
 
 export function About() {
+  const meta = edition.sections.about;
   return (
-    <section id="about" className="scroll-mt-20 border-t">
-      <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-          {about.heading}
-        </h2>
-        <div className="mt-8 grid gap-12 md:grid-cols-[1.6fr_1fr]">
-          <div className="space-y-5 text-lg leading-relaxed text-muted-foreground">
+    <section id="about" className="scroll-mt-20 border-t border-foreground/15">
+      <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
+        <SectionHeading kicker={meta.kicker} title={meta.title} dek={meta.dek} />
+        <div className="grid gap-12 md:grid-cols-[1.7fr_1fr]">
+          <div className="font-serif text-lg leading-relaxed">
             {about.paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+              <p key={i} className={i === 0 ? "dropcap" : "mt-5"}>
+                {p}
+              </p>
             ))}
           </div>
-          <div>
-            <h3 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-              Skills
+          <aside className="md:border-l md:border-foreground/15 md:pl-8">
+            <h3 className="font-sans text-xs font-semibold tracking-[0.2em] text-brand uppercase">
+              Areas of coverage
             </h3>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <ul className="mt-4 divide-y divide-foreground/10 border-y border-foreground/10">
               {about.skills.map((s) => (
-                <Badge key={s} variant="outline">
+                <li key={s} className="font-serif py-2.5 text-[0.95rem]">
                   {s}
-                </Badge>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </aside>
         </div>
       </div>
     </section>

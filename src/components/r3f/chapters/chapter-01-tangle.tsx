@@ -62,15 +62,23 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   const lines = useRef<THREE.LineSegments>(null);
   const crystal = useRef<THREE.Mesh>(null);
 
+  // Store both source buffers; the geometry's live position buffer is blended
+  // between them on the CPU each frame. Avoids Three.js morph-target machinery
+  // on LineSegments (which crashes in WebGLMorphtargets.update when the mesh's
+  // morphInfluences/attribute wiring is not fully compatible).
+  const buffers = useMemo(() => {
+    const tangled = makeTangledKnot();
+    const crystal = makeCrystalSkeleton();
+    const live = new Float32Array(tangled.length);
+    live.set(tangled);
+    return { tangled, crystal, live };
+  }, []);
+
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry();
-    const tangled = makeTangledKnot();
-    const crystalSkel = makeCrystalSkeleton();
-    // Base position is the tangled knot; morph target 0 is the crystal skeleton.
-    g.setAttribute("position", new THREE.BufferAttribute(tangled, 3));
-    g.morphAttributes.position = [new THREE.BufferAttribute(crystalSkel, 3)];
+    g.setAttribute("position", new THREE.BufferAttribute(buffers.live, 3));
     return g;
-  }, []);
+  }, [buffers]);
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(1);
@@ -84,8 +92,15 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
     if (lines.current) {
       const morph = Math.min(1, p / 0.7);
       const eased = morph * morph * (3 - 2 * morph);
-      const infl = lines.current.morphTargetInfluences;
-      if (infl) infl[0] = eased;
+      const live = buffers.live;
+      const src = buffers.tangled;
+      const dst = buffers.crystal;
+      for (let i = 0; i < live.length; i++) {
+        live[i] = src[i] + (dst[i] - src[i]) * eased;
+      }
+      const attr = geometry.getAttribute("position") as THREE.BufferAttribute;
+      attr.needsUpdate = true;
+
       // Line color brightens as morph completes.
       const mat = lines.current.material as THREE.LineBasicMaterial;
       const brightness = 0.35 + eased * 0.5;
