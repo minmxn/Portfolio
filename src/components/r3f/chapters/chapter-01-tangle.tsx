@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html, MeshTransmissionMaterial, Line } from "@react-three/drei";
+import { MeshTransmissionMaterial, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
+import { setHoveredSpec } from "@/components/scroll/spec-hover-state";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 import { story } from "@/content";
 
@@ -114,7 +115,6 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const linesRef = useRef<any>(null); // Line2 / LineSegments2 from drei
   const crystal = useRef<THREE.Mesh>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const hoveredIndexRef = useRef<number | null>(null);
   const nodeMatRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([null, null, null]);
   const emissiveValues = useRef([BASE_EMISSIVE, BASE_EMISSIVE, BASE_EMISSIVE]);
@@ -251,12 +251,12 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
             <mesh
               onPointerOver={() => {
                 hoveredIndexRef.current = i;
-                setHoveredIndex(i);
+                setHoveredSpec(SPECS[i]);
                 document.body.style.cursor = "pointer";
               }}
               onPointerOut={() => {
                 hoveredIndexRef.current = null;
-                setHoveredIndex(null);
+                setHoveredSpec(null);
                 document.body.style.cursor = "auto";
               }}
             >
@@ -270,19 +270,6 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
                 emissiveIntensity={BASE_EMISSIVE}
               />
             </mesh>
-            {hoveredIndex === i && (
-              <Html
-                position={[0.18, 0.18, 0]}
-                style={{ pointerEvents: "none" }}
-              >
-                <div
-                  className="whitespace-nowrap border border-white/30 bg-black/70 px-2.5 py-0.5 font-sans text-[0.65rem] font-semibold uppercase tracking-wide text-white/90 backdrop-blur-sm"
-                  style={{ animation: "fadeIn 0.2s ease forwards" }}
-                >
-                  {spec}
-                </div>
-              </Html>
-            )}
           </group>
         ))}
       </group>
