@@ -28,21 +28,21 @@ export function BookIntroOverlay() {
     function tick() {
       const p = scrollState.progress;
 
-      // SCROLL indicator: exit 0.083 → 0.095
+      // SCROLL indicator: exit 0.075 → 0.085
       if (scrollWrapRef.current) {
-        scrollWrapRef.current.style.opacity = String(1 - lerp01(0.083, 0.095, p));
+        scrollWrapRef.current.style.opacity = String(1 - lerp01(0.075, 0.085, p));
       }
 
-      // Poem text: exit 0.095 → 0.120
+      // Poem text: exit 0.100 → 0.125
       if (poemWrapRef.current) {
-        poemWrapRef.current.style.opacity = String(1 - lerp01(0.095, 0.120, p));
+        poemWrapRef.current.style.opacity = String(1 - lerp01(0.100, 0.125, p));
       }
 
-      // Black overlay: fades in 0.142 → 0.167, fades out 0.167 → 0.200
+      // Black overlay: fades in 0.153 → 0.167, fades out 0.167 → 0.200
       if (blackRef.current) {
         let opacity = 0;
-        if (p >= 0.142 && p < 0.167) {
-          opacity = lerp01(0.142, 0.167, p);
+        if (p >= 0.153 && p < 0.167) {
+          opacity = lerp01(0.153, 0.167, p);
         } else if (p >= 0.167 && p < 0.200) {
           opacity = 1 - lerp01(0.167, 0.200, p);
         }
