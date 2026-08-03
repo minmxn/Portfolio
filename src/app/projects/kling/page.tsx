@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
 import { caseStudyKling } from "@/content";
 import { KlingGallery } from "@/components/kling/kling-gallery";
 import { KlingVideo } from "@/components/kling/kling-video";
@@ -10,6 +10,32 @@ export const metadata: Metadata = {
   title: `${caseStudyKling.name} | Case study`,
   description: caseStudyKling.tagline,
 };
+
+function LearningEntry({
+  heading,
+  body,
+}: {
+  heading: string;
+  body: string;
+}) {
+  const isPending = body.startsWith("Pending.");
+  return (
+    <div>
+      <h3 className="font-display text-lg font-semibold tracking-tight">
+        {heading}
+      </h3>
+      <p
+        className={`font-serif mt-2 text-base leading-relaxed ${
+          isPending
+            ? "text-muted-foreground/60 italic"
+            : "text-muted-foreground"
+        }`}
+      >
+        {body}
+      </p>
+    </div>
+  );
+}
 
 export default function KlingCaseStudy() {
   return (
@@ -158,6 +184,50 @@ export default function KlingCaseStudy() {
           />
         </div>
       </section>
+
+      {/* What I learned */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          What I learned
+        </h2>
+        <div className="mt-6 space-y-8">
+          <LearningEntry
+            heading="What surprised me"
+            body={caseStudyKling.learnings.surprised}
+          />
+          <LearningEntry
+            heading="The limits I hit"
+            body={caseStudyKling.learnings.limits}
+          />
+          <LearningEntry
+            heading="What I would use this for"
+            body={caseStudyKling.learnings.useFor}
+          />
+        </div>
+      </section>
+
+      {/* Meta credit */}
+      <p className="font-sans mt-14 text-xs leading-relaxed tracking-wide text-muted-foreground/80">
+        {caseStudyKling.metaCredit}
+      </p>
+
+      {/* Footer nav */}
+      <div className="mt-8 border-t border-foreground/15 pt-8 flex flex-wrap items-center justify-between gap-4">
+        <Link
+          href="/#projects"
+          className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase transition-colors hover:text-glow"
+        >
+          <ArrowLeft className="size-3.5" />
+          All work
+        </Link>
+        <Link
+          href="/projects/nomo"
+          className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold tracking-[0.12em] text-glow uppercase transition-opacity hover:opacity-70"
+        >
+          See Nomo case study
+          <ChevronRight className="size-3.5" />
+        </Link>
+      </div>
     </article>
   );
 }
