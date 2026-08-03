@@ -360,9 +360,20 @@ export type StoryBeat = {
   /** Optional tag row rendered as small pill badges (e.g. tech stack). */
   spec?: string[];
   cta?: { label: string; href: string; external?: boolean };
+  /** Short poetic overlay lines rendered as thin serif in the shining narrative. */
+  poem?: string[];
 };
 
 export const story: StoryBeat[] = [
+  {
+    kicker: "Intro",
+    label: "Begin",
+    title: "A small journey, told in six scenes.",
+    lines: [
+      "A hooded silhouette stands beside a small glowing book. Scroll or tap the book to begin.",
+    ],
+    poem: ["Let's explore together..."],
+  },
   {
     kicker: "Chapter 01",
     label: "What I do",
@@ -372,6 +383,11 @@ export const story: StoryBeat[] = [
       "For the last few years I have worked on large scale public sector digital platforms as a business analyst.",
       "My job is to make the messy parts clear, so engineers, testers, and stakeholders can move as one team.",
     ],
+    poem: [
+      "I gave the chaos a name...",
+      "I turned tangled lines into solid forms.",
+    ],
+    spec: ["Business analysis", "Public sector", "Requirements to shippable software"],
   },
   {
     kicker: "Chapter 02",
@@ -380,6 +396,10 @@ export const story: StoryBeat[] = [
     lines: [
       "I taught myself to code to close the gap between a good idea and a working product.",
       "So I built Nomo: an AI news companion, live in production, running on free-tier infrastructure at zero cost.",
+    ],
+    poem: [
+      "Building things makes me whole.",
+      "Nomo was the first spark.",
     ],
     spec: ["Node.js", "Groq LLM", "NewsAPI", "Telegram Bot API", "Oracle Cloud", "PM2"],
     cta: { label: "Try Nomo", href: "https://t.me/nomogh_bot", external: true },
@@ -390,6 +410,10 @@ export const story: StoryBeat[] = [
     title: "An analyst's discipline, with a builder's hands.",
     lines: [
       "Years of requirements, UAT, releases, and stakeholder work, plus the engineering I picked up to ship my own products.",
+    ],
+    poem: [
+      "I gathered tools along the way...",
+      "Each one a small, shining star.",
     ],
     skills: [...about.skills, "Generative AI (Kling 3.0)"],
     spec: ["Business Analysis", "Product Thinking", "AI and Automation", "Generative Video (Kling 3.0)"],
@@ -402,6 +426,21 @@ export const story: StoryBeat[] = [
       "I am studying for the Claude Certified Architect exam to go deeper on building with AI.",
       "And I am looking for a product role where I can turn clear problems into things people use.",
     ],
+    poem: [
+      "Now I seek a higher vantage point...",
+      "To build, to lead, to grow.",
+    ],
+    spec: ["Product management growth", "CCA leadership", "Studying Claude Certified Architect"],
     cta: { label: "Get in touch", href: "#contact" },
+  },
+  {
+    kicker: "End",
+    label: "Reach out",
+    title: "Let's build something together.",
+    lines: [
+      "Open to product roles and to conversations about building useful things.",
+    ],
+    poem: ["Let's build something together."],
+    cta: { label: "See my work", href: "#projects" },
   },
 ];
