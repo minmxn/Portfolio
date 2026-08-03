@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { site } from "@/content";
 
 export function SiteHeader() {
@@ -23,15 +22,6 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <Button
-          size="sm"
-          variant="outline"
-          className="rounded-none border-foreground/25 font-sans text-xs font-semibold tracking-[0.12em] uppercase backdrop-blur-sm transition-colors hover:border-glow/60 hover:text-glow"
-          nativeButton={false}
-          render={<a href={site.resumeUrl} target="_blank" rel="noreferrer" />}
-        >
-          Resume
-        </Button>
       </div>
     </header>
   );

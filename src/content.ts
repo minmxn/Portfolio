@@ -7,8 +7,6 @@ export const site = {
   tagline: "Business analyst building toward product management",
   location: "Singapore",
   email: "seetminyi.work@gmail.com",
-  // TODO: drop your CV at public/resume.pdf (a placeholder is provided).
-  resumeUrl: "/resume.pdf",
   nav: [
     { label: "The Story", href: "#story" },
     { label: "Projects", href: "#projects" },
@@ -32,7 +30,6 @@ export const hero = {
     "I turn messy, multi stakeholder requirements into software that teams can build, test, and ship. Then I go one step further and build my own products to prove the thinking. The clearest evidence is Nomo, an AI news companion I designed, built, and run in production every day.",
   highlights: ["Business analysis", "Product thinking", "AI and automation"],
   primaryCta: { label: "See my work", href: "#projects" },
-  secondaryCta: { label: "View resume", href: "/resume.pdf" },
 };
 
 // Newspaper styling and chrome. Edit these to rename the paper, change the
@@ -276,11 +273,11 @@ export const caseStudyKling: CaseStudyKling = {
   },
   learnings: {
     surprised:
-      "Pending. Min Yi to fill in what Kling did well, in two or three sentences.",
+      "The quality-to-effort ratio was genuinely surprising. With just a character reference sheet and a handful of prompts, Kling kept the prince visually consistent across different angles and distances, which is the technically hard part of generative video. The motion felt intentional, not like a glitchy demo.",
     limits:
-      "Pending. Min Yi to fill in Kling's failure modes, in two or three sentences.",
+      "The free tier caps you at around 66 credits a day, which in practice means one character reference and one 5-second clip per session, so iteration is slow and you have to commit to a creative direction early. Character consistency also drifted in motion-heavy shots, with fine details like clothing texture shifting between cuts.",
     useFor:
-      "Pending. Min Yi to fill in how she would use generative video in a product management context, in two or three sentences.",
+      "Working with it hands-on gave me a feel for where generative AI actually sits today, not just what the marketing says. That kind of firsthand understanding matters when you are evaluating whether a tool belongs in something you are building.",
   },
   metaCredit:
     "Made with Kling 3.0. Style: painterly watercolor plus soft 3D. 2026.",

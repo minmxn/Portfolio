@@ -58,21 +58,6 @@ export function Hero() {
                 {hero.primaryCta.label}
                 <ArrowRight />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-none border-foreground/40"
-                nativeButton={false}
-                render={
-                  <a
-                    href={hero.secondaryCta.href}
-                    target="_blank"
-                    rel="noreferrer"
-                  />
-                }
-              >
-                {hero.secondaryCta.label}
-              </Button>
             </div>
           </div>
 

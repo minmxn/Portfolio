@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,36 @@ export default function NomoCaseStudy() {
             )}
           </section>
         ))}
+      </div>
+
+      {/* Screenshots */}
+      <div className="mt-14">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          The bot in action
+        </h2>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+          {[
+            { src: "/nomo/Nomo_Daily_Briefing.png", caption: "Morning briefing" },
+            { src: "/nomo/Nomo_Quiz_Qns.png", caption: "Daily quiz" },
+            { src: "/nomo/Nomo_Quiz_Ans.png", caption: "Quiz answer reveal" },
+            { src: "/nomo/Nomo_News.png", caption: "Swipeable news reader" },
+          ].map(({ src, caption }) => (
+            <figure key={src} className="flex flex-col gap-2">
+              <div className="overflow-hidden border border-foreground/10 bg-foreground/5">
+                <Image
+                  src={src}
+                  alt={caption}
+                  width={600}
+                  height={1200}
+                  className="w-full object-cover"
+                />
+              </div>
+              <figcaption className="font-sans text-[0.68rem] tracking-[0.1em] text-muted-foreground uppercase">
+                {caption}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       </div>
 
       {/* Footer nav */}

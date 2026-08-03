@@ -1,8 +1,9 @@
-import { FileText, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { LinkedinIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/editorial/section-heading";
 import { contact, edition, site } from "@/content";
+
 
 export function Contact() {
   const meta = edition.sections.contact;
@@ -43,18 +44,6 @@ export function Contact() {
               >
                 <LinkedinIcon />
                 LinkedIn
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="justify-start rounded-none border-foreground/40"
-                nativeButton={false}
-                render={
-                  <a href={site.resumeUrl} target="_blank" rel="noreferrer" />
-                }
-              >
-                <FileText />
-                Resume
               </Button>
             </div>
           </div>
