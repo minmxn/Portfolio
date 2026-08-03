@@ -1,159 +1,100 @@
 "use client";
 
-// Chapter 02 - "What drives me": the camera zooms into the resolved structure,
-// which opens into a showcase pedestal for the Nomo project. Dynamic light
-// shafts sweep the pedestal; the whole group tilts with the mouse pointer for
-// an interactive, alive feel.
-//
-// The pedestal is: a floating torus-knot "product glyph" above a round base
-// disc, flanked by two volumetric light shafts (cone geometry, additive blend).
-// The group idles with a slow breath and a gentle auto-yaw, intensified when
-// the chapter is active.
-
 import { useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
-// How fast the tilt follows the pointer (damping factor).
-const TILT_DAMP = 5;
+// Chapter 02 - "What drives me": a low-poly pedestal appears; on top rotates
+// an abstract interlocked torus-knot representing Nomo. Two warm-golden cone
+// light shafts sweep across the pedestal, drawn additively so they read as
+// light and not solid geometry.
 
 export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const glyphRef = useRef<THREE.Mesh>(null);
-  const shaft1Ref = useRef<THREE.Mesh>(null);
-  const shaft2Ref = useRef<THREE.Mesh>(null);
-  const baseRef = useRef<THREE.Mesh>(null);
-  const tiltX = useRef(0);
-  const tiltY = useRef(0);
-
-  const { pointer } = useThree();
+  const group = useRef<THREE.Group>(null);
+  const knot = useRef<THREE.Mesh>(null);
+  const shaftA = useRef<THREE.Mesh>(null);
+  const shaftB = useRef<THREE.Mesh>(null);
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(2);
-    if (!groupRef.current) return;
+    if (!group.current) return;
+    group.current.visible = p > 0.001;
 
-    const reveal = THREE.MathUtils.smoothstep(p, 0.05, 0.5);
-    groupRef.current.visible = reveal > 0.001;
+    // Pedestal group scales in during the first 30% of the chapter.
+    const scaleIn = Math.min(1, p / 0.3);
+    const s = scaleIn * scaleIn * (3 - 2 * scaleIn);
+    group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, s, 3, delta));
 
-    // Entire pedestal fades/scales in over the first half of the chapter.
-    groupRef.current.scale.setScalar(
-      THREE.MathUtils.damp(groupRef.current.scale.x, reveal * 1.0, 6, delta),
-    );
-
-    // Slow auto-yaw; quietens once settled.
-    if (glyphRef.current) {
-      const spin = 0.18 + (1 - Math.min(p, 1)) * 0.3;
-      glyphRef.current.rotation.y += delta * spin;
-      glyphRef.current.rotation.x += delta * 0.07;
-      // Gentle breath on the glyph scale.
-      const breath = 1 + Math.sin(performance.now() * 0.0012) * 0.04;
-      glyphRef.current.scale.setScalar(breath);
+    if (knot.current) {
+      knot.current.rotation.y += delta * 0.35;
+      knot.current.rotation.x += delta * 0.15;
     }
 
-    // Mouse-tilt the whole pedestal for the interactive feel.
-    tiltX.current = THREE.MathUtils.damp(
-      tiltX.current,
-      -pointer.y * 0.32 * reveal,
-      TILT_DAMP,
-      delta,
-    );
-    tiltY.current = THREE.MathUtils.damp(
-      tiltY.current,
-      pointer.x * 0.32 * reveal,
-      TILT_DAMP,
-      delta,
-    );
-    groupRef.current.rotation.x = tiltX.current;
-    groupRef.current.rotation.y = tiltY.current;
-
-    // Light shafts sweep slowly and pulse with the breath.
-    const shaftIntensity = 0.25 + Math.sin(performance.now() * 0.0008) * 0.12;
-    [shaft1Ref.current, shaft2Ref.current].forEach((s, i) => {
-      if (!s) return;
-      const mat = s.material as THREE.MeshBasicMaterial;
-      mat.opacity = shaftIntensity * reveal * (tier === "full" ? 1 : 0.6);
-      s.rotation.z += delta * (i === 0 ? 0.04 : -0.06);
-    });
-
-    // Platform ring pulses.
-    if (baseRef.current) {
-      const baseMat = baseRef.current.material as THREE.MeshStandardMaterial;
-      baseMat.emissiveIntensity =
-        0.4 + Math.sin(performance.now() * 0.001 + 1) * 0.2 * reveal;
+    // Light shafts sway slowly; opacity pulses.
+    const t = performance.now() * 0.0006;
+    if (shaftA.current) {
+      const mat = shaftA.current.material as THREE.MeshBasicMaterial;
+      shaftA.current.rotation.z = -0.35 + Math.sin(t) * 0.06;
+      mat.opacity = 0.28 + Math.sin(t * 1.3) * 0.08;
+    }
+    if (shaftB.current) {
+      const mat = shaftB.current.material as THREE.MeshBasicMaterial;
+      shaftB.current.rotation.z = 0.35 + Math.cos(t) * 0.06;
+      mat.opacity = 0.28 + Math.cos(t * 1.3) * 0.08;
     }
   });
 
+  const pedestalColor = "#1a141c";
+  const knotColor = "#f5d18a";
+  const knotEmissive = tier === "full" ? 1.6 : 1.0;
+  const shaftColor = "#f6d795";
+
   return (
-    <group ref={groupRef} position={[0, -0.4, 0]} visible={false}>
-      {/* Platform disc */}
-      <mesh ref={baseRef} rotation-x={-Math.PI / 2} position-y={-1.5}>
-        <cylinderGeometry args={[1.8, 2.0, 0.08, 64]} />
+    <group ref={group} position={[-0.6, -0.2, 0]} scale={0.001}>
+      {/* Pedestal base (short wide cylinder) */}
+      <mesh position={[0, -0.35, 0]}>
+        <cylinderGeometry args={[0.35, 0.42, 0.12, 16]} />
+        <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
+      </mesh>
+      {/* Pedestal column */}
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
+        <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
+      </mesh>
+      {/* Nomo glyph: an abstract interlocked torus-knot floating above the pedestal */}
+      <mesh ref={knot} position={[0, 0.55, 0]}>
+        <torusKnotGeometry args={[0.14, 0.04, 96, 12, 2, 3]} />
         <meshStandardMaterial
-          color="#1a2a3a"
-          emissive="#3a86ff"
-          emissiveIntensity={0.4}
-          roughness={0.4}
-          metalness={0.7}
-        />
-      </mesh>
-
-      {/* Product glyph — Nomo's identity: a torus knot (interconnected systems) */}
-      <mesh ref={glyphRef} position={[0, 0.15, 0]}>
-        <torusKnotGeometry args={[0.62, 0.19, 160, 28, 2, 3]} />
-        <meshStandardMaterial
-          color="#c8eeff"
-          emissive="#5ab4ff"
-          emissiveIntensity={1.1}
-          roughness={0.15}
-          metalness={0.4}
-        />
-      </mesh>
-
-      {/* Light shaft left */}
-      <mesh
-        ref={shaft1Ref}
-        position={[-1.1, 1.8, -0.5]}
-        rotation={[0, 0, Math.PI / 5]}
-      >
-        <coneGeometry args={[0.18, 4.5, 12, 1, true]} />
-        <meshBasicMaterial
-          color="#4a9eff"
-          transparent
-          opacity={0.25}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-
-      {/* Light shaft right */}
-      <mesh
-        ref={shaft2Ref}
-        position={[1.1, 1.8, -0.5]}
-        rotation={[0, 0, -Math.PI / 5]}
-      >
-        <coneGeometry args={[0.18, 4.5, 12, 1, true]} />
-        <meshBasicMaterial
-          color="#7ac4ff"
-          transparent
-          opacity={0.22}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-
-      {/* Floating ring accent */}
-      <mesh position={[0, 0.15, 0]} rotation-x={Math.PI / 2}>
-        <torusGeometry args={[1.15, 0.012, 16, 100]} />
-        <meshStandardMaterial
-          color="#aaddff"
-          emissive="#6fb8ff"
-          emissiveIntensity={0.9}
-          roughness={0.2}
+          color={knotColor}
+          emissive={knotColor}
+          emissiveIntensity={knotEmissive}
+          roughness={0.35}
           metalness={0.3}
+        />
+      </mesh>
+      {/* Two warm-golden light shafts: tall thin cones drawn additively */}
+      <mesh ref={shaftA} position={[-0.35, 0.6, -0.2]} rotation={[0, 0, -0.35]}>
+        <coneGeometry args={[0.28, 1.4, 24, 1, true]} />
+        <meshBasicMaterial
+          color={shaftColor}
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      <mesh ref={shaftB} position={[0.35, 0.6, -0.2]} rotation={[0, 0, 0.35]}>
+        <coneGeometry args={[0.28, 1.4, 24, 1, true]} />
+        <meshBasicMaterial
+          color={shaftColor}
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          side={THREE.DoubleSide}
         />
       </mesh>
     </group>
