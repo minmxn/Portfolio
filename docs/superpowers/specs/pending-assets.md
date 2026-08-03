@@ -39,6 +39,10 @@ Short paragraphs for the "What I learned" section of `/projects/kling`. See `202
 - [ ] "Prince meets Fox" scene — short clip or still. Emotional beat of the Little Prince story; would anchor the Kling case study.
 - [ ] High-contrast Kling case study hero image — one dramatic still (Prince on the asteroid, muted gold + starry blue), sized for a wide banner. Would make `/projects/kling` cinematic on first paint.
 
+## Structural work complete
+
+- [x] `/projects/kling` case study route built and verified: reference sheets, prompt exhibits, embedded video (with reduced-motion respect), placeholder Learnings sections, and closing footer nav are all live. Home Projects card links to it. Ch03 story beat references Kling. Awaiting Min Yi's three Learnings paragraphs to replace placeholder text.
+
 ## Done (kept for reference)
 
 - [x] `assets/Prince_Front.png` — Little Prince, front view.
