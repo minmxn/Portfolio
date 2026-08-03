@@ -43,6 +43,8 @@ Short paragraphs for the "What I learned" section of `/projects/kling`. See `202
 
 - [x] `/projects/kling` case study route built and verified: reference sheets, prompt exhibits, embedded video (with reduced-motion respect), placeholder Learnings sections, and closing footer nav are all live. Home Projects card links to it. Ch03 story beat references Kling. Awaiting Min Yi's three Learnings paragraphs to replace placeholder text.
 
+- [x] Home `/` shining narrative rebuild shipped: book intro, four chapters (morph-target crystal, Nomo pedestal + torus-knot, six-icon toolkit ring, ascending pillar), end scene with contact chips. Gradient backdrop shader, hooded person silhouette character, Bloom + Vignette + Noise post-processing, six-section camera rig. StaticNarrative renders poem + prose fallback for reduced-motion users.
+
 ## Done (kept for reference)
 
 - [x] `assets/Prince_Front.png` — Little Prince, front view.
