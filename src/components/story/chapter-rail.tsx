@@ -25,16 +25,18 @@ export function ChapterRail({ labels }: { labels: string[] }) {
       {labels.map((label, i) => {
         const isActive = i === active;
         return (
-          <div key={label} className="flex items-center gap-3">
+          <div key={label} className="group relative flex items-center">
             <span
               className={cn(
-                "h-px transition-all duration-500",
-                isActive ? "w-8 bg-glow" : "w-4 bg-foreground/25",
+                "rounded-full transition-all duration-500",
+                isActive
+                  ? "h-2.5 w-2.5 bg-glow shadow-[0_0_6px_2px_var(--color-glow)]"
+                  : "h-2 w-2 bg-foreground/25",
               )}
             />
             <span
               className={cn(
-                "font-sans text-[0.65rem] font-semibold tracking-[0.2em] uppercase transition-colors duration-500",
+                "pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 whitespace-nowrap font-sans text-[0.65rem] font-semibold tracking-[0.2em] uppercase opacity-0 transition-opacity duration-150 group-hover:opacity-100",
                 isActive ? "text-glow" : "text-muted-foreground/60",
               )}
             >
