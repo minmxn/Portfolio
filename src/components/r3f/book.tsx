@@ -18,6 +18,10 @@ const PAGE_MAX_ROTATIONS = [
   Math.PI,        // page 4 — top
 ] as const;
 
+const STIFFNESS = [55,  65,  75,  85, 100] as const; // index 0 = bottom page
+const DAMPING   = [10,   9,   8,   7,   6] as const;
+const STAGGER   = [0.060, 0.045, 0.030, 0.015, 0.000] as const;
+
 export function BookIntro() {
   const group = useRef<THREE.Group>(null);
   const coverPivot = useRef<THREE.Group>(null);
@@ -25,6 +29,9 @@ export function BookIntro() {
   const halo = useRef<THREE.Mesh>(null);
   const glyphA = useRef<THREE.Mesh>(null);
   const glyphB = useRef<THREE.Mesh>(null);
+  const pageSpring = useRef(
+    Array.from({ length: 5 }, () => ({ pos: 0, vel: 0 }))
+  );
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(0);
@@ -58,13 +65,16 @@ export function BookIntro() {
       );
     }
 
-    // Page cascade fan: all pages spread to their target arc angle
-    const fanT = smoothstep(0.60, 0.92, p);
+    // Page spring physics: each page has mass (stiffness/damping) and cascades top-to-bottom
     for (let i = 0; i < 5; i++) {
+      const staggeredT = Math.max(0, p - STAGGER[i]);
+      const target = PAGE_MAX_ROTATIONS[i] * smoothstep(0.60, 0.92, staggeredT);
+      const spring = pageSpring.current[i];
+      const force = STIFFNESS[i] * (target - spring.pos) - DAMPING[i] * spring.vel;
+      spring.vel += force * delta;
+      spring.pos += spring.vel * delta;
       const pivot = pagePivots.current[i];
-      if (!pivot) continue;
-      const target = PAGE_MAX_ROTATIONS[i] * fanT;
-      pivot.rotation.z = THREE.MathUtils.damp(pivot.rotation.z, target, 5, delta);
+      if (pivot) pivot.rotation.z = spring.pos;
     }
   });
 
