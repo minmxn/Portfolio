@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, MeshTransmissionMaterial, Line } from "@react-three/drei";
 import * as THREE from "three";
@@ -120,6 +120,12 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   const emissiveValues = useRef([BASE_EMISSIVE, BASE_EMISSIVE, BASE_EMISSIVE]);
   const nodesGroupRef = useRef<THREE.Group>(null!);
   const nodeScaleValue = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, []);
 
   const buffers = useMemo(() => {
     const tangled = makeSquigglyLines();

@@ -25,6 +25,7 @@ export function SiteHeader() {
 
     const handleScroll = () => {
       if (permanentlyVisible) return;
+      if (window.innerWidth < 1024) return;
       const currentY = window.scrollY;
       const scrollingUp = currentY < lastScrollY;
       if (currentY > 80 && !scrollingUp) {
