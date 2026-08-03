@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshTransmissionMaterial, Line } from "@react-three/drei";
+import { Html, MeshTransmissionMaterial, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
+import { story } from "@/content";
 
 // Chapter 01 - "What I do": tangled low-poly wireframe knot morphs into a
 // geometric crystal skeleton using Three.js morphAttributes. Toward the end
@@ -16,6 +17,14 @@ import type { CapabilityTier } from "@/hooks/use-device-capability";
 // High segment count keeps all curves visually smooth (no polygon look).
 const SEGMENT_COUNT = 210;
 const TWO_PI = Math.PI * 2;
+const SPECS = story[1].spec ?? [];
+const POSITIONS: [number, number, number][] = [
+  [-1.2, 0.8, 0],
+  [1.4, 0.1, 0],
+  [-0.8, -1.0, 0],
+];
+const BASE_EMISSIVE = 0.3;
+const HOVER_EMISSIVE = 1.0;
 
 function makeSquigglyLines(): Float32Array {
   const positions = new Float32Array(SEGMENT_COUNT * 2 * 3);
@@ -105,6 +114,12 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const linesRef = useRef<any>(null); // Line2 / LineSegments2 from drei
   const crystal = useRef<THREE.Mesh>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const hoveredIndexRef = useRef<number | null>(null);
+  const nodeMatRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([null, null, null]);
+  const emissiveValues = useRef([BASE_EMISSIVE, BASE_EMISSIVE, BASE_EMISSIVE]);
+  const nodesGroupRef = useRef<THREE.Group>(null!);
+  const nodeScaleValue = useRef(0);
 
   const buffers = useMemo(() => {
     const tangled = makeSquigglyLines();
@@ -159,6 +174,32 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
       crystal.current.rotation.y -= delta * 0.2;
       crystal.current.rotation.x += delta * 0.05;
     }
+
+    // Satellite node scale fade-in
+    const targetNodeScale = p > 0.15 ? 1 : 0;
+    nodeScaleValue.current = THREE.MathUtils.damp(
+      nodeScaleValue.current,
+      targetNodeScale,
+      5,
+      delta,
+    );
+    if (nodesGroupRef.current) {
+      nodesGroupRef.current.scale.setScalar(nodeScaleValue.current);
+    }
+
+    // Per-node emissive intensity damping
+    for (let i = 0; i < 3; i++) {
+      const targetEmissive =
+        hoveredIndexRef.current === i ? HOVER_EMISSIVE : BASE_EMISSIVE;
+      emissiveValues.current[i] = THREE.MathUtils.damp(
+        emissiveValues.current[i],
+        targetEmissive,
+        8,
+        delta,
+      );
+      const mat = nodeMatRefs.current[i];
+      if (mat) mat.emissiveIntensity = emissiveValues.current[i];
+    }
   });
 
   return (
@@ -197,6 +238,48 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
           />
         )}
       </mesh>
+
+      <group ref={nodesGroupRef}>
+        {SPECS.map((spec, i) => (
+          <group key={spec} position={POSITIONS[i]}>
+            <mesh
+              onPointerOver={() => {
+                hoveredIndexRef.current = i;
+                setHoveredIndex(i);
+                document.body.style.cursor = "pointer";
+              }}
+              onPointerOut={() => {
+                hoveredIndexRef.current = null;
+                setHoveredIndex(null);
+                document.body.style.cursor = "auto";
+              }}
+            >
+              <sphereGeometry args={[0.1, 16, 16]} />
+              <meshStandardMaterial
+                ref={(m) => {
+                  nodeMatRefs.current[i] = m;
+                }}
+                color="#a8d8ff"
+                emissive="#4499cc"
+                emissiveIntensity={BASE_EMISSIVE}
+              />
+            </mesh>
+            {hoveredIndex === i && (
+              <Html
+                position={[0.18, 0.18, 0]}
+                style={{ pointerEvents: "none" }}
+              >
+                <div
+                  className="whitespace-nowrap border border-white/30 bg-black/70 px-2.5 py-0.5 font-sans text-[0.65rem] font-semibold uppercase tracking-wide text-white/90 backdrop-blur-sm"
+                  style={{ animation: "fadeIn 0.2s ease forwards" }}
+                >
+                  {spec}
+                </div>
+              </Html>
+            )}
+          </group>
+        ))}
+      </group>
     </group>
   );
 }
