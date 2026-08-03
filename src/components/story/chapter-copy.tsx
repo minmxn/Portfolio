@@ -21,10 +21,6 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
             transition={{ duration: 0.9, ease: EASE }}
             className="text-center md:text-left"
           >
-            <p className="mb-3 font-sans text-[0.65rem] font-semibold tracking-[0.2em] text-glow/60 uppercase">
-              {beat.kicker}
-            </p>
-
             {beat.poem?.map((line, i) => (
               <p
                 key={i}
@@ -33,19 +29,6 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
                 {line}
               </p>
             ))}
-
-            {beat.spec && (
-              <div className="mt-8 flex flex-wrap justify-center gap-2 opacity-0 transition-opacity duration-500 hover:opacity-100 focus-within:opacity-100 md:justify-start md:opacity-40">
-                {beat.spec.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-block border border-foreground/20 px-2.5 py-0.5 font-sans text-[0.68rem] font-medium tracking-wide text-muted-foreground uppercase"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )}
 
             {beat.cta && (
               <div className="mt-6">
