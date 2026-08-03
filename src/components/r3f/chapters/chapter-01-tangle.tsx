@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshTransmissionMaterial } from "@react-three/drei";
+import { MeshTransmissionMaterial, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
@@ -13,71 +13,115 @@ import type { CapabilityTier } from "@/hooks/use-device-capability";
 // on the crystal position, giving the illusion of solid glass forming from
 // the resolving lines.
 
-const SEGMENT_COUNT = 80;
+// High segment count keeps all curves visually smooth (no polygon look).
+const SEGMENT_COUNT = 210;
+const TWO_PI = Math.PI * 2;
 
-function makeTangledKnot(): Float32Array {
-  // A trefoil knot with amplitude noise, sampled as line segments (pairs of
-  // consecutive samples). Each vertex is 3 floats, each segment is 2 vertices.
+function makeSquigglyLines(): Float32Array {
   const positions = new Float32Array(SEGMENT_COUNT * 2 * 3);
-  const noise = (i: number) =>
-    Math.sin(i * 1.9) * 0.35 + Math.cos(i * 2.7) * 0.28;
-  const sample = (t: number) => {
-    const a = 0.85;
-    const x = Math.sin(t) + 2 * Math.sin(2 * t) + noise(t * 3) * a;
-    const y = Math.cos(t) - 2 * Math.cos(2 * t) + noise(t * 3 + 2) * a;
-    const z = -Math.sin(3 * t) + noise(t * 3 + 4) * a;
-    return [x * 0.28, y * 0.28, z * 0.28] as const;
-  };
-  for (let i = 0; i < SEGMENT_COUNT; i++) {
-    const t0 = (i / SEGMENT_COUNT) * Math.PI * 2;
-    const t1 = ((i + 1) / SEGMENT_COUNT) * Math.PI * 2;
-    const p0 = sample(t0);
-    const p1 = sample(t1);
-    positions.set(p0, i * 6);
-    positions.set(p1, i * 6 + 3);
+
+  // Three overlapping closed loops — lemniscate / figure-8 style curves.
+  // High segment counts per stroke ensure smooth rendering.
+  const strokes: { count: number; fn: (t: number) => readonly [number, number, number] }[] = [
+    {
+      count: 75,
+      fn: (t) => {
+        const x = Math.sin(t * TWO_PI * 2) * 0.58;
+        const y = Math.cos(t * TWO_PI) * 0.45 + Math.sin(t * TWO_PI * 2) * 0.12;
+        const z = Math.sin(t * TWO_PI * 1.5 + 0.3) * 0.22;
+        return [x, y, z];
+      },
+    },
+    {
+      count: 75,
+      fn: (t) => {
+        const x = Math.sin(t * TWO_PI * 2 + Math.PI * 0.75) * 0.52;
+        const y = Math.cos(t * TWO_PI + Math.PI * 0.5) * 0.42 - 0.08;
+        const z = Math.cos(t * TWO_PI * 1.5 + 0.8) * 0.18;
+        return [x, y, z];
+      },
+    },
+    {
+      count: 60,
+      fn: (t) => {
+        const x = Math.sin(t * TWO_PI * 3 + Math.PI * 0.4) * 0.38;
+        const y = Math.cos(t * TWO_PI * 2 + Math.PI * 0.3) * 0.32 + 0.08;
+        const z = Math.sin(t * TWO_PI * 2 + 1.0) * 0.25;
+        return [x, y, z];
+      },
+    },
+  ];
+
+  let idx = 0;
+  for (const { count, fn } of strokes) {
+    for (let i = 0; i < count; i++) {
+      positions.set(fn(i / count), idx * 6);
+      positions.set(fn((i + 1) / count), idx * 6 + 3);
+      idx++;
+    }
   }
   return positions;
 }
 
-function makeCrystalSkeleton(): Float32Array {
-  // An icosahedron's edges, sampled as line segments. Each edge is one segment.
-  const geom = new THREE.IcosahedronGeometry(0.9, 0);
-  const edges = new THREE.EdgesGeometry(geom);
-  const attr = edges.getAttribute("position") as THREE.BufferAttribute;
-  const source = attr.array as Float32Array;
-  // We may not have exactly SEGMENT_COUNT * 2 vertices. If shorter, repeat the
-  // last edge; if longer, truncate. This keeps buffer sizes matched with the
-  // tangled buffer for morph compatibility.
-  const target = new Float32Array(SEGMENT_COUNT * 2 * 3);
-  for (let i = 0; i < target.length; i++) {
-    target[i] = source[i % source.length];
+function makeCrystalArcs(): Float32Array {
+  // Three great circles on a sphere — organic and rounded, not polygonal.
+  // The morph resolves squiggly chaos into clean circular order.
+  const positions = new Float32Array(SEGMENT_COUNT * 2 * 3);
+  const R = 0.88;
+  const counts = [75, 70, 65]; // sums to 210
+
+  const circles: ((t: number) => readonly [number, number, number])[] = [
+    // Equatorial ring (XZ plane)
+    (t) => {
+      const a = t * TWO_PI;
+      return [R * Math.cos(a), 0, R * Math.sin(a)];
+    },
+    // Ring tilted 60° around Z — creates a diagonal orbital
+    (t) => {
+      const a = t * TWO_PI;
+      return [R * Math.cos(a) * 0.5, R * Math.cos(a) * 0.866, R * Math.sin(a)];
+    },
+    // Ring tilted around X — third orbital, perpendicular feel
+    (t) => {
+      const a = t * TWO_PI;
+      return [R * Math.cos(a), R * Math.sin(a) * 0.866, R * Math.sin(a) * 0.5];
+    },
+  ];
+
+  let idx = 0;
+  for (let c = 0; c < circles.length; c++) {
+    const count = counts[c];
+    for (let i = 0; i < count; i++) {
+      positions.set(circles[c](i / count), idx * 6);
+      positions.set(circles[c]((i + 1) / count), idx * 6 + 3);
+      idx++;
+    }
   }
-  geom.dispose();
-  edges.dispose();
-  return target;
+  return positions;
 }
 
 export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   const group = useRef<THREE.Group>(null);
-  const lines = useRef<THREE.LineSegments>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const linesRef = useRef<any>(null); // Line2 / LineSegments2 from drei
   const crystal = useRef<THREE.Mesh>(null);
 
-  // Store both source buffers; the geometry's live position buffer is blended
-  // between them on the CPU each frame. Avoids Three.js morph-target machinery
-  // on LineSegments (which crashes in WebGLMorphtargets.update when the mesh's
-  // morphInfluences/attribute wiring is not fully compatible).
   const buffers = useMemo(() => {
-    const tangled = makeTangledKnot();
-    const crystal = makeCrystalSkeleton();
+    const tangled = makeSquigglyLines();
+    const crystal = makeCrystalArcs();
     const live = new Float32Array(tangled.length);
     live.set(tangled);
     return { tangled, crystal, live };
   }, []);
 
-  const geometry = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(buffers.live, 3));
-    return g;
+  // Initial point list for <Line> mount (stable — updated imperatively in useFrame)
+  const initialPoints = useMemo(() => {
+    const pts: [number, number, number][] = [];
+    const b = buffers.live;
+    for (let i = 0; i < b.length; i += 3) {
+      pts.push([b[i], b[i + 1], b[i + 2]]);
+    }
+    return pts;
   }, [buffers]);
 
   useFrame((_, delta) => {
@@ -85,11 +129,9 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
     if (!group.current) return;
     group.current.visible = p > 0.001;
 
-    // Rotate the whole group slowly for parallax.
     group.current.rotation.y += delta * 0.12;
 
-    // Morph from tangled (p=0) to crystal skeleton (p=0.7). Eased.
-    if (lines.current) {
+    if (linesRef.current) {
       const morph = Math.min(1, p / 0.7);
       const eased = morph * morph * (3 - 2 * morph);
       const live = buffers.live;
@@ -98,16 +140,17 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
       for (let i = 0; i < live.length; i++) {
         live[i] = src[i] + (dst[i] - src[i]) * eased;
       }
-      const attr = geometry.getAttribute("position") as THREE.BufferAttribute;
-      attr.needsUpdate = true;
+      // Line2 geometry update — handles needsUpdate internally
+      linesRef.current.geometry.setPositions(live);
 
-      // Line color brightens as morph completes.
-      const mat = lines.current.material as THREE.LineBasicMaterial;
       const brightness = 0.35 + eased * 0.5;
-      mat.color.setRGB(brightness * 0.7, brightness * 0.85, brightness * 1.0);
+      linesRef.current.material.color.setRGB(
+        brightness * 0.7,
+        brightness * 0.85,
+        brightness * 1.0
+      );
     }
 
-    // Crystal solid appears in the back half (p 0.5 -> 1.0), scaling in.
     if (crystal.current) {
       const reveal = Math.max(0, Math.min(1, (p - 0.5) / 0.5));
       const s = reveal * 0.55;
@@ -120,9 +163,16 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
 
   return (
     <group ref={group} position={[0, 0, 0]}>
-      <lineSegments ref={lines} geometry={geometry}>
-        <lineBasicMaterial color="#7fb3ff" transparent opacity={0.85} />
-      </lineSegments>
+      {/* Line2-based rendering: smooth antialiased joins, lineWidth > 1 */}
+      <Line
+        ref={linesRef}
+        points={initialPoints}
+        color="#7fb3ff"
+        lineWidth={2}
+        segments
+        transparent
+        opacity={0.85}
+      />
 
       <mesh ref={crystal} position={[0, 0.1, 0]} visible={false}>
         <icosahedronGeometry args={[0.9, 0]} />
