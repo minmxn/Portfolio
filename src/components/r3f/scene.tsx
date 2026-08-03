@@ -52,7 +52,7 @@ export default function Scene({ tier }: { tier: CapabilityTier }) {
       <Chapter01Tangle tier={tier} />
       <Chapter02Pedestal tier={tier} />
       <Chapter03Toolkit />
-      <Chapter04Horizon tier={tier} />
+      <Chapter04Horizon />
 
       <PostFX tier={tier} />
     </Canvas>
