@@ -42,8 +42,8 @@ export function Character({ tier }: { tier: CapabilityTier }) {
     // Interpolate between the two neighbouring section keyframes using the
     // global scroll progress. Same interp math as the camera rig.
     const sections = CHARACTER_POS.length; // 6
-    const scaled = scrollState.progress * (sections - 1);
-    const i = Math.min(sections - 2, Math.floor(scaled));
+    const scaled = scrollState.progress * sections - 0.5;
+    const i = THREE.MathUtils.clamp(Math.floor(scaled), 0, sections - 2);
     const t = THREE.MathUtils.clamp(scaled - i, 0, 1);
     const posA = CHARACTER_POS[i];
     const posB = CHARACTER_POS[i + 1];

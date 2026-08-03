@@ -28,8 +28,8 @@ function sampleKeyframe(
   key: "pos" | "look",
   out: THREE.Vector3,
 ): THREE.Vector3 {
-  const scaled = progress * (CHAPTER_COUNT - 1);
-  const i = Math.min(CHAPTER_COUNT - 2, Math.floor(scaled));
+  const scaled = progress * CHAPTER_COUNT - 0.5;
+  const i = THREE.MathUtils.clamp(Math.floor(scaled), 0, CHAPTER_COUNT - 2);
   const f = THREE.MathUtils.clamp(scaled - i, 0, 1);
   const a = KEYFRAMES[i][key];
   const b = KEYFRAMES[i + 1][key];
