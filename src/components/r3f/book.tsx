@@ -10,9 +10,18 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
+const PAGE_MAX_ROTATIONS = [
+  Math.PI * 0.16, // page 0 — bottom
+  Math.PI * 0.36, // page 1
+  Math.PI * 0.58, // page 2
+  Math.PI * 0.80, // page 3
+  Math.PI,        // page 4 — top
+] as const;
+
 export function BookIntro() {
   const group = useRef<THREE.Group>(null);
   const coverPivot = useRef<THREE.Group>(null);
+  const pagePivots = useRef<(THREE.Group | null)[]>([null, null, null, null, null]);
   const halo = useRef<THREE.Mesh>(null);
   const glyphA = useRef<THREE.Mesh>(null);
   const glyphB = useRef<THREE.Mesh>(null);
@@ -48,6 +57,15 @@ export function BookIntro() {
         delta,
       );
     }
+
+    // Page cascade fan: all pages spread to their target arc angle
+    const fanT = smoothstep(0.60, 0.92, p);
+    for (let i = 0; i < 5; i++) {
+      const pivot = pagePivots.current[i];
+      if (!pivot) continue;
+      const target = PAGE_MAX_ROTATIONS[i] * fanT;
+      pivot.rotation.z = THREE.MathUtils.damp(pivot.rotation.z, target, 5, delta);
+    }
   });
 
   const leather = "#3a2318";
@@ -69,11 +87,24 @@ export function BookIntro() {
         <boxGeometry args={[0.7, 0.06, 0.5]} />
         <meshStandardMaterial color={leather} roughness={0.8} metalness={0.05} />
       </mesh>
-      {/* Page block — untouched */}
-      <mesh position={[0.01, 0.06, 0]}>
-        <boxGeometry args={[0.66, 0.05, 0.46]} />
-        <meshStandardMaterial color={pages} roughness={0.9} metalness={0} />
-      </mesh>
+      {/* Page cascade fan — 5 individual pages replacing the page block */}
+      {([0.040, 0.050, 0.060, 0.070, 0.080] as const).map((yCenter, i) => (
+        <group
+          key={i}
+          ref={(el) => { pagePivots.current[i] = el; }}
+          position={[-0.32, yCenter, 0]}
+        >
+          <mesh position={[0.33, 0, 0]}>
+            <boxGeometry args={[0.66, 0.01, 0.46]} />
+            <meshStandardMaterial
+              color={pages}
+              roughness={0.9}
+              metalness={0}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      ))}
       {/* Spine — untouched */}
       <mesh position={[-0.34, 0.06, 0]}>
         <boxGeometry args={[0.03, 0.16, 0.5]} />
