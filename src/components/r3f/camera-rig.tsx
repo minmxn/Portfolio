@@ -58,9 +58,9 @@ export function CameraRig() {
     const progress = scrollState.progress;
     const inIntro = progress < INTRO_END;
 
-    // Detect the single frame where we exit the intro band and boost damp to snap.
-    const dampFactor = wasInIntro.current && !inIntro ? 60 : 4;
-    if (wasInIntro.current && !inIntro) wasInIntro.current = false;
+    // Detect the single crossing frame where we exit the intro band.
+    const isCrossingFrame = wasInIntro.current && !inIntro;
+    if (isCrossingFrame) wasInIntro.current = false;
 
     if (inIntro) {
       // t = local sub-progress within the intro band, 0..1
@@ -114,9 +114,9 @@ export function CameraRig() {
       const parallaxX = pointer.x * 0.25 * parallaxScale;
       const parallaxY = pointer.y * 0.15 * parallaxScale;
 
-      camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredPos.current.x + parallaxX, dampFactor, delta);
-      camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredPos.current.y + parallaxY, dampFactor, delta);
-      camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredPos.current.z, dampFactor, delta);
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredPos.current.x + parallaxX, 4, delta);
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredPos.current.y + parallaxY, 4, delta);
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredPos.current.z, 4, delta);
     } else {
       // Chapters 1–5: existing keyframe sampler, unchanged
       sampleKeyframe(progress, "pos", desiredPos.current);
@@ -125,14 +125,28 @@ export function CameraRig() {
       const parallaxX = pointer.x * 0.25;
       const parallaxY = pointer.y * 0.15;
 
-      camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredPos.current.x + parallaxX, dampFactor, delta);
-      camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredPos.current.y + parallaxY, dampFactor, delta);
-      camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredPos.current.z, dampFactor, delta);
+      if (isCrossingFrame) {
+        // Hard-set camera directly to ch1 sampled values on the crossing frame.
+        // damp() is frame-rate-dependent and closes only ~38% of the gap at 120Hz —
+        // on a fast scroll the black overlay can clear while the camera is still sliding.
+        camera.position.set(
+          desiredPos.current.x + parallaxX,
+          desiredPos.current.y + parallaxY,
+          desiredPos.current.z,
+        );
+        currentLook.current.copy(desiredLook.current);
+        camera.lookAt(currentLook.current);
+        return;
+      }
+
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredPos.current.x + parallaxX, 4, delta);
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredPos.current.y + parallaxY, 4, delta);
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredPos.current.z, 4, delta);
     }
 
-    currentLook.current.x = THREE.MathUtils.damp(currentLook.current.x, desiredLook.current.x, dampFactor, delta);
-    currentLook.current.y = THREE.MathUtils.damp(currentLook.current.y, desiredLook.current.y, dampFactor, delta);
-    currentLook.current.z = THREE.MathUtils.damp(currentLook.current.z, desiredLook.current.z, dampFactor, delta);
+    currentLook.current.x = THREE.MathUtils.damp(currentLook.current.x, desiredLook.current.x, 4, delta);
+    currentLook.current.y = THREE.MathUtils.damp(currentLook.current.y, desiredLook.current.y, 4, delta);
+    currentLook.current.z = THREE.MathUtils.damp(currentLook.current.z, desiredLook.current.z, 4, delta);
     camera.lookAt(currentLook.current);
   });
 
