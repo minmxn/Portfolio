@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { dampE } from "maath/easing";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
@@ -18,9 +19,9 @@ const PAGE_MAX_ROTATIONS = [
   Math.PI,        // page 4 — top
 ] as const;
 
-const STIFFNESS = [55,  65,  75,  85, 100] as const; // index 0 = bottom page
-const DAMPING   = [10,   9,   8,   7,   6] as const;
-const STAGGER   = [0.060, 0.045, 0.030, 0.015, 0.000] as const;
+// Lambda: lower = looser trailing feel, never overshoots (overdamped by construction)
+const LAMBDA  = [1.5, 2.0, 2.5, 3.0, 3.5] as const; // index 0 = bottom page
+const STAGGER = [0.060, 0.045, 0.030, 0.015, 0.000] as const;
 
 export function BookIntro() {
   const group = useRef<THREE.Group>(null);
@@ -29,9 +30,6 @@ export function BookIntro() {
   const halo = useRef<THREE.Mesh>(null);
   const glyphA = useRef<THREE.Mesh>(null);
   const glyphB = useRef<THREE.Mesh>(null);
-  const pageSpring = useRef(
-    Array.from({ length: 5 }, () => ({ pos: 0, vel: 0 }))
-  );
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(0);
@@ -65,16 +63,12 @@ export function BookIntro() {
       );
     }
 
-    // Page spring physics: each page has mass (stiffness/damping) and cascades top-to-bottom
+    // Page cascade fan: dampE is overdamped by construction — no overshoot possible
     for (let i = 0; i < 5; i++) {
       const staggeredT = Math.max(0, p - STAGGER[i]);
       const target = PAGE_MAX_ROTATIONS[i] * smoothstep(0.60, 0.92, staggeredT);
-      const spring = pageSpring.current[i];
-      const force = STIFFNESS[i] * (target - spring.pos) - DAMPING[i] * spring.vel;
-      spring.vel += force * delta;
-      spring.pos += spring.vel * delta;
       const pivot = pagePivots.current[i];
-      if (pivot) pivot.rotation.z = spring.pos;
+      if (pivot) dampE(pivot.rotation, [0, 0, target], LAMBDA[i], delta);
     }
   });
 
