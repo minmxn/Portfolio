@@ -1,9 +1,63 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { site } from "@/content";
 
 export function SiteHeader() {
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    let lastScrollY = window.scrollY;
+    let permanentlyVisible = false;
+
+    const show = () => {
+      header.style.opacity = "1";
+      header.style.pointerEvents = "";
+    };
+    const hide = () => {
+      header.style.opacity = "0";
+      header.style.pointerEvents = "none";
+    };
+
+    const handleScroll = () => {
+      if (permanentlyVisible) return;
+      const currentY = window.scrollY;
+      const scrollingUp = currentY < lastScrollY;
+      if (currentY > 80 && !scrollingUp) {
+        hide();
+      } else {
+        show();
+      }
+      lastScrollY = currentY;
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          permanentlyVisible = true;
+          show();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    const projectsSection = document.querySelector("#projects");
+    if (projectsSection) observer.observe(projectsSection);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <header className="fixed top-0 z-50 w-full">
+    <header ref={headerRef} className="fixed top-0 z-50 w-full transition-opacity duration-[400ms]">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
         <Link
           href="/"
