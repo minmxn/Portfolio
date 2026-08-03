@@ -9,6 +9,7 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { Backdrop } from "./backdrop";
 import { Character } from "./character";
+import { BookIntro } from "./book";
 import { CameraRig } from "./camera-rig";
 import { PostFX } from "./post-processing";
 import { Chapter01Tangle } from "./chapters/chapter-01-tangle";
@@ -43,6 +44,8 @@ export default function Scene({ tier }: { tier: CapabilityTier }) {
       <pointLight position={[0, 4, -6]} intensity={18} color="#ffffff" />
 
       <Character tier={tier} />
+
+      <BookIntro />
 
       <CameraRig />
 
