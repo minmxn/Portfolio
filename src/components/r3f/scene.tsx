@@ -16,6 +16,7 @@ import { Chapter01Tangle } from "./chapters/chapter-01-tangle";
 import { Chapter02Pedestal } from "./chapters/chapter-02-pedestal";
 import { Chapter03Toolkit } from "./chapters/chapter-03-toolkit";
 import { Chapter04Horizon } from "./chapters/chapter-04-horizon";
+import { EndScene } from "./end-scene";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
 export default function Scene({ tier }: { tier: CapabilityTier }) {
@@ -53,6 +54,7 @@ export default function Scene({ tier }: { tier: CapabilityTier }) {
       <Chapter02Pedestal tier={tier} />
       <Chapter03Toolkit />
       <Chapter04Horizon />
+      <EndScene />
 
       <PostFX tier={tier} />
     </Canvas>
