@@ -49,7 +49,7 @@ function sampleKeyframe(
 
 export function CameraRig() {
   const { camera, pointer } = useThree();
-  const desiredPos = useRef(new THREE.Vector3(0.3, 1.8, 5.5));
+  const desiredPos = useRef(new THREE.Vector3(-0.5, 4.5, 3.5));
   const desiredLook = useRef(new THREE.Vector3(0, 0, 0));
   const currentLook = useRef(new THREE.Vector3(0, 0, 0));
   const wasInIntro = useRef(true);
@@ -66,34 +66,48 @@ export function CameraRig() {
       // t = local sub-progress within the intro band, 0..1
       const t = progress / INTRO_END;
 
-      // Sub-phase positions and look-ats (from spec)
-      const holdPos:  [number, number, number] = [0.3, 1.8, 5.5];
-      const holdLook: [number, number, number] = [-0.3, -0.4, 0.0];
-      const divePos:  [number, number, number] = [0.1, 0.4, 1.2];
-      const diveLook: [number, number, number] = [-0.2, 0.0, 0.0];
-      const entryPos: [number, number, number] = [0.0, 0.0, 0.3];
-      const entryLook:[number, number, number] = [0.0, 0.0, 0.0];
+      const sunPos:    [number, number, number] = [-0.5,  4.5,  3.5];
+      const sunLook:   [number, number, number] = [-0.9, -0.6,  0.4];
+      const driftPos:  [number, number, number] = [-0.7,  2.0,  2.0];
+      const driftLook: [number, number, number] = [-0.9, -0.2,  0.4];
+      const divePos:   [number, number, number] = [-0.9,  0.2,  0.5];
+      const diveLook:  [number, number, number] = [-0.9, -1.5,  0.4];
+      const entryPos:  [number, number, number] = [-0.9, -0.3,  0.5];
+      const entryLook: [number, number, number] = [-0.9, -1.5,  0.4];
 
-      if (t <= 0.50) {
-        // Hold: camera stationary at elevated isometric view
-        desiredPos.current.set(...holdPos);
-        desiredLook.current.set(...holdLook);
-      } else if (t <= 0.85) {
-        // Dive: smoothstep from hold position toward mid-dive position
-        const f = smoothstep(0.50, 0.85, t);
+      if (t <= 0.45) {
+        // Hold: steep overhead sun position, camera stationary
+        desiredPos.current.set(...sunPos);
+        desiredLook.current.set(...sunLook);
+      } else if (t <= 0.75) {
+        // Drift: camera eases down as cover opens
+        const f = smoothstep(0.45, 0.75, t);
         desiredPos.current.set(
-          THREE.MathUtils.lerp(holdPos[0], divePos[0], f),
-          THREE.MathUtils.lerp(holdPos[1], divePos[1], f),
-          THREE.MathUtils.lerp(holdPos[2], divePos[2], f),
+          THREE.MathUtils.lerp(sunPos[0], driftPos[0], f),
+          THREE.MathUtils.lerp(sunPos[1], driftPos[1], f),
+          THREE.MathUtils.lerp(sunPos[2], driftPos[2], f),
         );
         desiredLook.current.set(
-          THREE.MathUtils.lerp(holdLook[0], diveLook[0], f),
-          THREE.MathUtils.lerp(holdLook[1], diveLook[1], f),
-          THREE.MathUtils.lerp(holdLook[2], diveLook[2], f),
+          THREE.MathUtils.lerp(sunLook[0], driftLook[0], f),
+          THREE.MathUtils.lerp(sunLook[1], driftLook[1], f),
+          THREE.MathUtils.lerp(sunLook[2], driftLook[2], f),
+        );
+      } else if (t <= 0.92) {
+        // Dive: steep fall into the open book interior
+        const f = smoothstep(0.75, 0.92, t);
+        desiredPos.current.set(
+          THREE.MathUtils.lerp(driftPos[0], divePos[0], f),
+          THREE.MathUtils.lerp(driftPos[1], divePos[1], f),
+          THREE.MathUtils.lerp(driftPos[2], divePos[2], f),
+        );
+        desiredLook.current.set(
+          THREE.MathUtils.lerp(driftLook[0], diveLook[0], f),
+          THREE.MathUtils.lerp(driftLook[1], diveLook[1], f),
+          THREE.MathUtils.lerp(driftLook[2], diveLook[2], f),
         );
       } else {
-        // Entry: smoothstep from mid-dive to book cover surface
-        const f = smoothstep(0.85, 1.00, t);
+        // Entry: last push before black overlay
+        const f = smoothstep(0.92, 1.00, t);
         desiredPos.current.set(
           THREE.MathUtils.lerp(divePos[0], entryPos[0], f),
           THREE.MathUtils.lerp(divePos[1], entryPos[1], f),
@@ -106,11 +120,10 @@ export function CameraRig() {
         );
       }
 
-      // Parallax fades out during the dive so it doesn't fight the camera's forward momentum.
-      // At t=0.50 scale is 1.0; at t=0.85 scale is 0.0; stays 0 for entry.
-      const parallaxScale = t <= 0.50
+      // Parallax fades out t 0.45→0.75 (during drift/cover-open) so it doesn't fight the dive.
+      const parallaxScale = t <= 0.45
         ? 1.0
-        : THREE.MathUtils.clamp(1.0 - (t - 0.50) / 0.35, 0, 1);
+        : THREE.MathUtils.clamp(1.0 - (t - 0.45) / 0.30, 0, 1);
       const parallaxX = pointer.x * 0.25 * parallaxScale;
       const parallaxY = pointer.y * 0.15 * parallaxScale;
 
