@@ -14,7 +14,7 @@ import { CameraRig } from "./camera-rig";
 import { PostFX } from "./post-processing";
 import { Chapter01Tangle } from "./chapters/chapter-01-tangle";
 import { Chapter02Pedestal } from "./chapters/chapter-02-pedestal";
-import { Chapter03Grid } from "./chapters/chapter-03-grid";
+import { Chapter03Toolkit } from "./chapters/chapter-03-toolkit";
 import { Chapter04Horizon } from "./chapters/chapter-04-horizon";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
@@ -51,7 +51,7 @@ export default function Scene({ tier }: { tier: CapabilityTier }) {
 
       <Chapter01Tangle tier={tier} />
       <Chapter02Pedestal tier={tier} />
-      <Chapter03Grid />
+      <Chapter03Toolkit />
       <Chapter04Horizon tier={tier} />
 
       <PostFX tier={tier} />
