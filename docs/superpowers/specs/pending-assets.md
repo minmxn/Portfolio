@@ -6,12 +6,7 @@
 
 ## Nomo case study assets
 
-Screenshots to save into `assets/nomo/`. Naming below is what the Nomo case-study page will reference; keep it exact.
-
-- [ ] `assets/nomo/nomo-morning-briefing.png` — the 8am daily briefing (bullet snapshot).
-- [ ] `assets/nomo/nomo-daily-quiz.png` — the daily quiz message (3 questions, Easy/Medium/Hard).
-- [ ] `assets/nomo/nomo-quiz-answers.png` — the quiz answers reveal (with explanations).
-- [ ] `assets/nomo/nomo-news-reader.png` — the 12pm swipeable news reader (Windows AI Foundry example).
+- [x] 4 screenshots added to `public/nomo/` and displayed in 2×2 grid on the case study page.
 
 *Optional additions:*
 - [ ] `assets/nomo/nomo-poll.png` — a daily poll message, if she has a good one.
@@ -19,19 +14,14 @@ Screenshots to save into `assets/nomo/`. Naming below is what the Nomo case-stud
 
 ## Kling case study reflections
 
-Short paragraphs for the "What I learned" section of `/projects/kling`. See `2026-08-03-kling-case-study-design.md` for the full plan.
-
-- [ ] **What surprised me** — 2–3 sentences on what Kling did well.
-- [ ] **The limits I hit** — 2–3 sentences on failure modes (character consistency, hands, backgrounds, temporal drift, etc.).
-- [ ] **What I'd use this for** — 2–3 sentences on how you'd use generative video in PM work (product demos, prototype pitches, onboarding films, storytelling for a launch, etc.).
+- [x] All three learnings paragraphs written and committed (surprised, limits, useFor).
 
 *Optional:*
-- [ ] Video poster frame preference (defaults to `prince-front.png` if not chosen).
-- [ ] 2–4 additional Kling scene prompts you used, to strengthen the "how it was built" story.
+- [ ] 2–4 additional Kling scene prompts used, to strengthen the "how it was built" story.
 
 ## Personal assets
 
-- [ ] Real resume PDF at `public/resume.pdf` (currently a placeholder).
+- [x] Resume removed from site (Min Yi chose not to share it publicly).
 - [ ] Headshot / avatar — optional. Only needed if you want to appear in the About or Contact areas.
 
 ## Kling-generatable enrichments (optional)
