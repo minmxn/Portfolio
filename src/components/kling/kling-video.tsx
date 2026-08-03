@@ -21,6 +21,11 @@ export function KlingVideo({
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(query.matches);
+    if (!query.matches) {
+      videoRef.current?.play().catch(() => {
+        /* Autoplay policy may still block; native controls remain visible. */
+      });
+    }
     const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);
@@ -53,6 +58,7 @@ export function KlingVideo({
           loop
           preload="metadata"
           autoPlay={shouldAutoplay}
+          onPlay={() => setUserStarted(true)}
           className="block h-auto w-full"
         />
         {showManualPlayButton && (
