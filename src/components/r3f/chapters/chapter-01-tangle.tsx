@@ -1,161 +1,134 @@
 "use client";
 
-// Chapter 01 - "What I do": a tangled, chaotic web of glowing lines that
-// straightens and snaps into a structured, illuminated glass icosahedron as the
-// chapter scrolls. Driven entirely by the shared scroll-state (chapter 0's
-// local progress) inside useFrame, so it never triggers a React re-render.
-
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { MeshTransmissionMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
-import { createLineMorphMaterial } from "../materials/line-morph-material";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
-const NODE_COUNT = 170;
-const STRUCTURE_RADIUS = 2.15;
-// Ring offsets that connect each node to a few others, forming a web.
-const LINKS = [1, 7, 23, 54];
+// Chapter 01 - "What I do": tangled low-poly wireframe knot morphs into a
+// geometric crystal skeleton using Three.js morphAttributes. Toward the end
+// of the chapter band, a transmission-material icosahedron emerges centred
+// on the crystal position, giving the illusion of solid glass forming from
+// the resolving lines.
 
-// Deterministic pseudo-random so the tangle is stable across renders/SSR.
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+const SEGMENT_COUNT = 80;
+
+function makeTangledKnot(): Float32Array {
+  // A trefoil knot with amplitude noise, sampled as line segments (pairs of
+  // consecutive samples). Each vertex is 3 floats, each segment is 2 vertices.
+  const positions = new Float32Array(SEGMENT_COUNT * 2 * 3);
+  const noise = (i: number) =>
+    Math.sin(i * 1.9) * 0.35 + Math.cos(i * 2.7) * 0.28;
+  const sample = (t: number) => {
+    const a = 0.85;
+    const x = Math.sin(t) + 2 * Math.sin(2 * t) + noise(t * 3) * a;
+    const y = Math.cos(t) - 2 * Math.cos(2 * t) + noise(t * 3 + 2) * a;
+    const z = -Math.sin(3 * t) + noise(t * 3 + 4) * a;
+    return [x * 0.28, y * 0.28, z * 0.28] as const;
   };
+  for (let i = 0; i < SEGMENT_COUNT; i++) {
+    const t0 = (i / SEGMENT_COUNT) * Math.PI * 2;
+    const t1 = ((i + 1) / SEGMENT_COUNT) * Math.PI * 2;
+    const p0 = sample(t0);
+    const p1 = sample(t1);
+    positions.set(p0, i * 6);
+    positions.set(p1, i * 6 + 3);
+  }
+  return positions;
 }
 
-function buildGeometry() {
-  const rand = mulberry32(1337);
-
-  // Ordered: nodes distributed evenly on a sphere (Fibonacci lattice).
-  const ordered: THREE.Vector3[] = [];
-  const golden = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < NODE_COUNT; i++) {
-    const y = 1 - (i / (NODE_COUNT - 1)) * 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = golden * i;
-    ordered.push(
-      new THREE.Vector3(
-        Math.cos(theta) * r,
-        y,
-        Math.sin(theta) * r,
-      ).multiplyScalar(STRUCTURE_RADIUS),
-    );
+function makeCrystalSkeleton(): Float32Array {
+  // An icosahedron's edges, sampled as line segments. Each edge is one segment.
+  const geom = new THREE.IcosahedronGeometry(0.9, 0);
+  const edges = new THREE.EdgesGeometry(geom);
+  const attr = edges.getAttribute("position") as THREE.BufferAttribute;
+  const source = attr.array as Float32Array;
+  // We may not have exactly SEGMENT_COUNT * 2 vertices. If shorter, repeat the
+  // last edge; if longer, truncate. This keeps buffer sizes matched with the
+  // tangled buffer for morph compatibility.
+  const target = new Float32Array(SEGMENT_COUNT * 2 * 3);
+  for (let i = 0; i < target.length; i++) {
+    target[i] = source[i % source.length];
   }
-
-  // Tangled: chaotic cloud, each node flung to a random spot with extra noise.
-  const tangled: THREE.Vector3[] = ordered.map(() => {
-    const u = rand();
-    const v = rand();
-    const radius = 1.6 + rand() * 2.6;
-    const t = Math.acos(2 * u - 1);
-    const p = 2 * Math.PI * v;
-    return new THREE.Vector3(
-      Math.sin(t) * Math.cos(p) * radius,
-      Math.cos(t) * radius * 1.15,
-      Math.sin(t) * Math.sin(p) * radius,
-    );
-  });
-
-  const positions: number[] = [];
-  const tangledAttr: number[] = [];
-  const pushPair = (a: number, b: number) => {
-    positions.push(ordered[a].x, ordered[a].y, ordered[a].z);
-    positions.push(ordered[b].x, ordered[b].y, ordered[b].z);
-    tangledAttr.push(tangled[a].x, tangled[a].y, tangled[a].z);
-    tangledAttr.push(tangled[b].x, tangled[b].y, tangled[b].z);
-  };
-
-  for (let i = 0; i < NODE_COUNT; i++) {
-    for (const link of LINKS) {
-      pushPair(i, (i + link) % NODE_COUNT);
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
-  geometry.setAttribute(
-    "aTangled",
-    new THREE.Float32BufferAttribute(tangledAttr, 3),
-  );
-  return geometry;
+  geom.dispose();
+  edges.dispose();
+  return target;
 }
 
 export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const glassRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const group = useRef<THREE.Group>(null);
+  const lines = useRef<THREE.LineSegments>(null);
+  const crystal = useRef<THREE.Mesh>(null);
 
-  const geometry = useMemo(buildGeometry, []);
-  const material = useMemo(() => createLineMorphMaterial(), []);
-  materialRef.current = material;
+  const geometry = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    const tangled = makeTangledKnot();
+    const crystalSkel = makeCrystalSkeleton();
+    // Base position is the tangled knot; morph target 0 is the crystal skeleton.
+    g.setAttribute("position", new THREE.BufferAttribute(tangled, 3));
+    g.morphAttributes.position = [new THREE.BufferAttribute(crystalSkel, 3)];
+    return g;
+  }, []);
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(1);
+    if (!group.current) return;
+    group.current.visible = p > 0.001;
 
-    material.uniforms.uProgress.value = p;
+    // Rotate the whole group slowly for parallax.
+    group.current.rotation.y += delta * 0.12;
 
-    if (groupRef.current) {
-      // Chaotic tumble that calms as the structure resolves.
-      const spin = (1 - p) * 0.5 + 0.06;
-      groupRef.current.rotation.y += delta * spin;
-      groupRef.current.rotation.x = THREE.MathUtils.damp(
-        groupRef.current.rotation.x,
-        (1 - p) * 0.35,
-        3,
-        delta,
-      );
+    // Morph from tangled (p=0) to crystal skeleton (p=0.7). Eased.
+    if (lines.current) {
+      const morph = Math.min(1, p / 0.7);
+      const eased = morph * morph * (3 - 2 * morph);
+      const infl = lines.current.morphTargetInfluences;
+      if (infl) infl[0] = eased;
+      // Line color brightens as morph completes.
+      const mat = lines.current.material as THREE.LineBasicMaterial;
+      const brightness = 0.35 + eased * 0.5;
+      mat.color.setRGB(brightness * 0.7, brightness * 0.85, brightness * 1.0);
     }
 
-    if (glassRef.current) {
-      // Glass core emerges only in the back half, once lines have ordered.
-      const reveal = THREE.MathUtils.smoothstep(p, 0.55, 1);
-      const s = 0.0001 + reveal * 1.35;
-      glassRef.current.scale.setScalar(s);
-      glassRef.current.visible = reveal > 0.001;
-      glassRef.current.rotation.y -= delta * 0.25;
+    // Crystal solid appears in the back half (p 0.5 -> 1.0), scaling in.
+    if (crystal.current) {
+      const reveal = Math.max(0, Math.min(1, (p - 0.5) / 0.5));
+      const s = reveal * 0.55;
+      crystal.current.visible = reveal > 0.001;
+      crystal.current.scale.setScalar(THREE.MathUtils.damp(crystal.current.scale.x, s, 3, delta));
+      crystal.current.rotation.y -= delta * 0.2;
+      crystal.current.rotation.x += delta * 0.05;
     }
   });
 
   return (
-    <group ref={groupRef}>
-      <lineSegments geometry={geometry} material={material} frustumCulled={false} />
+    <group ref={group} position={[0, 0, 0]}>
+      <lineSegments ref={lines} geometry={geometry}>
+        <lineBasicMaterial color="#7fb3ff" transparent opacity={0.85} />
+      </lineSegments>
 
-      <mesh ref={glassRef} visible={false}>
-        <icosahedronGeometry args={[1, 0]} />
+      <mesh ref={crystal} position={[0, 0.1, 0]} visible={false}>
+        <icosahedronGeometry args={[0.9, 0]} />
         {tier === "full" ? (
           <MeshTransmissionMaterial
             transmission={1}
-            thickness={0.6}
-            roughness={0.08}
+            thickness={0.4}
+            roughness={0.15}
             ior={1.4}
-            chromaticAberration={0.06}
-            anisotropy={0.2}
-            distortion={0.2}
-            distortionScale={0.3}
-            temporalDistortion={0.1}
-            color="#bfefff"
-            emissive="#2b6fff"
-            emissiveIntensity={0.15}
+            chromaticAberration={0.05}
+            color="#dfeeff"
           />
         ) : (
           <meshStandardMaterial
-            color="#bfefff"
-            emissive="#3a86ff"
-            emissiveIntensity={0.7}
-            roughness={0.2}
-            metalness={0.1}
+            color="#dfeeff"
+            emissive="#88a4ff"
+            emissiveIntensity={0.6}
+            roughness={0.3}
+            metalness={0.15}
             transparent
-            opacity={0.85}
-            wireframe
+            opacity={0.7}
           />
         )}
       </mesh>
