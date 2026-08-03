@@ -11,16 +11,29 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { setProgress } from "./scroll-state";
 
+let _lenis: Lenis | null = null;
+
+export function scrollToChapter(index: number): void {
+  const target = index * window.innerHeight;
+  if (_lenis) {
+    _lenis.scrollTo(target, { duration: 1.2 });
+  } else {
+    window.scrollTo({ top: target });
+  }
+}
+
 export function LenisProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const lenis = new Lenis({
+    _lenis = new Lenis({
       smoothWheel: true,
       duration: 1.1,
       // Slightly eased, long-tail wheel feel typical of high-end WebGL sites.
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
+
+    const lenis = _lenis;
 
     // Keep ScrollTrigger in sync with Lenis' virtual scroll position.
     lenis.on("scroll", ScrollTrigger.update);
@@ -66,6 +79,7 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       trigger.kill();
       gsap.ticker.remove(raf);
       lenis.destroy();
+      _lenis = null;
     };
   }, []);
 

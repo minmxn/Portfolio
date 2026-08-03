@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { scrollState, subscribeChapter } from "@/components/scroll/scroll-state";
+import { scrollToChapter } from "@/components/scroll/lenis-provider";
 import { cn } from "@/lib/utils";
 
 export function ChapterRail({ labels }: { labels: string[] }) {
@@ -19,13 +20,17 @@ export function ChapterRail({ labels }: { labels: string[] }) {
 
   return (
     <nav
-      aria-hidden
       className="fixed top-1/2 left-6 z-20 hidden -translate-y-1/2 flex-col gap-4 lg:flex"
     >
       {labels.map((label, i) => {
         const isActive = i === active;
         return (
-          <div key={label} className="group relative flex items-center">
+          <button
+            key={label}
+            onClick={() => scrollToChapter(i)}
+            className="group relative flex cursor-pointer items-center bg-transparent p-1 -m-1"
+            aria-label={label}
+          >
             <span
               className={cn(
                 "rounded-full transition-all duration-500",
@@ -42,7 +47,7 @@ export function ChapterRail({ labels }: { labels: string[] }) {
             >
               {label}
             </span>
-          </div>
+          </button>
         );
       })}
     </nav>
