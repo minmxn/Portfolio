@@ -6,7 +6,7 @@ import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
 import { StoryCard } from "@/components/r3f/story-card";
-import { chapterLocalProgress } from "@/components/scroll/scroll-state";
+import { scrollState } from "@/components/scroll/scroll-state";
 
 // ---------------------------------------------------------------------------
 // BeaconRing — pulsing radial ring that signals "this object is clickable"
@@ -100,9 +100,10 @@ export type InteractiveObjectProps = {
   baseEmissiveRef?: React.MutableRefObject<number>;
   /**
    * Which narrative section (0=intro, 1-4=chapters, 5=end) this object belongs
-   * to. The <Html> label renders only while that section is active — drei's
-   * <Html> ignores Three.js .visible, so without this gate every chapter's
-   * labels render on every scene at once.
+   * to. The <Html> label renders only while this section is the active one
+   * (scrollState.chapter === chapterIndex) — drei's <Html> ignores Three.js
+   * .visible, so without this gate every chapter's labels render on every
+   * scene at once, both before and after their own chapter.
    */
   chapterIndex: number;
 };
@@ -154,9 +155,9 @@ export function InteractiveObject({
       setShowCard(shouldShow);
     }
 
-    // Same expression each chapter group uses for its own mesh visibility, so
-    // labels and meshes appear and disappear together.
-    const labelVisible = chapterLocalProgress(chapterIndex) > 0.001;
+    // Only show the label while this object's section is the active one —
+    // otherwise it stays visible forever once its chapter has passed.
+    const labelVisible = scrollState.chapter === chapterIndex;
     if (labelVisible !== labelVisRef.current) {
       labelVisRef.current = labelVisible;
       setShowLabel(labelVisible);
