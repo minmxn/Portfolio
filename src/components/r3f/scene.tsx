@@ -34,6 +34,7 @@ export default function Scene({ tier }: { tier: CapabilityTier }) {
       frameloop="always"
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.localClippingEnabled = true;
         scene.fog = new THREE.FogExp2("#0a0e17", 0.06);
       }}
     >
