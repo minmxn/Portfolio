@@ -79,12 +79,13 @@ export function SiteHeader() {
   // If the viewport crosses into the md breakpoint while the mobile menu is
   // open, the menu's button/overlay vanish (md:hidden) but menuOpen stays
   // true, which would strand the header's scrolled background at scroll 0.
+  // menuOpen defaults to false, so there is nothing to reconcile on mount —
+  // only the crossing itself (the "change" event) needs to close it.
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 768px)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) setMenuOpen(false);
     };
-    if (mql.matches) setMenuOpen(false);
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, []);
