@@ -9,7 +9,7 @@ export function SiteFooter() {
     <footer className="relative z-10 border-t border-foreground/10 bg-background">
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="flex flex-col items-center gap-5 text-center">
-          <p className="font-display text-xl font-bold tracking-tight text-glow">
+          <p className="font-display text-xl font-bold tracking-tight text-muted-foreground">
             {site.name}
           </p>
           <div className="flex items-center gap-5 text-muted-foreground">
@@ -18,7 +18,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="LinkedIn"
-              className="transition-colors hover:text-brand"
+              className="transition-colors hover:text-foreground"
             >
               <LinkedinIcon className="size-5" />
             </a>
@@ -27,7 +27,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub"
-              className="transition-colors hover:text-brand"
+              className="transition-colors hover:text-foreground"
             >
               <GithubIcon className="size-5" />
             </a>
@@ -36,14 +36,14 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="Telegram"
-              className="transition-colors hover:text-brand"
+              className="transition-colors hover:text-foreground"
             >
               <Send className="size-5" />
             </a>
             <a
               href={`mailto:${site.email}`}
               aria-label="Email"
-              className="transition-colors hover:text-brand"
+              className="transition-colors hover:text-foreground"
             >
               <Mail className="size-5" />
             </a>
