@@ -1,12 +1,11 @@
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { Html } from "@react-three/drei";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
-import { StoryCard } from "@/components/r3f/story-card";
+import { InteractiveObject } from "@/components/r3f/interactive-object";
 
 // Chapter 03 - "My toolkit": six low-poly abstract icons float in a loose ring
 // around the character at slightly different heights. Each icon is a near-
@@ -32,157 +31,71 @@ function IconMesh({
   index: number;
   geometryKind: "tetra" | "torus" | "box" | "octa" | "cone" | "ico";
 }) {
-  const topRef = useRef<THREE.Mesh>(null);
-  const bottomRef = useRef<THREE.Mesh>(null);
-  const topMatRef = useRef<THREE.MeshStandardMaterial>(null);
-  const bottomMatRef = useRef<THREE.MeshStandardMaterial>(null);
-  const halo = useRef<THREE.Mesh>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
-  const splitRef = useRef(0);
-  const cardVisRef = useRef(false);
-  const [showCard, setShowCard] = useState(false);
+  const haloRef = useRef<THREE.Mesh>(null);
+  const outerGroupRef = useRef<THREE.Group>(null);
+  const baseEmissiveRef = useRef(0.05);
 
   const angle = (index / ITEMS) * Math.PI * 2;
   const baseX = Math.cos(angle) * RADIUS;
   const baseZ = Math.sin(angle) * RADIUS - 0.4;
   const baseY = ((index % 3) - 1) * 0.25;
 
-  const { topPlane, bottomPlane } = useMemo(
-    () => ({
-      topPlane: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0),
-      bottomPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
-    }),
-    [],
-  );
+  const item = TOOLKIT[index];
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(3);
-    const crackId = `ch03-${index}`;
-    const isCracked = getActiveCrack() === crackId;
 
-    // Illumination sweep (keep existing behavior)
+    // Illumination sweep — writes to baseEmissiveRef for InteractiveObject to read
     const start = index / ITEMS;
     const end = start + 0.35;
     const local = Math.max(0, Math.min(1, (p - start) / (end - start)));
     const eased = local * local * (3 - 2 * local);
-    const eI = 0.05 + eased * 2.2;
-    if (topMatRef.current) topMatRef.current.emissiveIntensity = eI;
-    if (bottomMatRef.current) bottomMatRef.current.emissiveIntensity = eI;
+    baseEmissiveRef.current = 0.05 + eased * 2.2;
 
-    // Bob and spin
+    // Bob animation — writes directly to outer group Y
     const t = performance.now() * 0.0007;
     const groupY = baseY + Math.sin(t + index) * 0.08;
-    if (topRef.current) {
-      topRef.current.parent!.position.y = groupY;
-      topRef.current.rotation.y += delta * (0.25 + index * 0.03);
-      topRef.current.rotation.x += delta * 0.08;
-    }
-    if (bottomRef.current) {
-      bottomRef.current.rotation.y = topRef.current?.rotation.y ?? 0;
-      bottomRef.current.rotation.x = topRef.current?.rotation.x ?? 0;
+    if (outerGroupRef.current) {
+      outerGroupRef.current.position.y = groupY;
     }
 
-    if (halo.current) {
-      const hMat = halo.current.material as THREE.MeshBasicMaterial;
+    // Halo ring
+    if (haloRef.current) {
+      const hMat = haloRef.current.material as THREE.MeshBasicMaterial;
       hMat.opacity = eased * 0.4;
-      halo.current.scale.setScalar(0.7 + eased * 0.35);
+      haloRef.current.scale.setScalar(0.7 + eased * 0.35);
     }
 
-    // Scroll-close: clear ch03 cracks when outside chapter band
+    // Scroll-close
     if ((p <= 0 || p >= 1) && getActiveCrack()?.startsWith("ch03")) {
       setActiveCrack(null);
     }
 
-    // Crack animation
-    splitRef.current = THREE.MathUtils.damp(splitRef.current, isCracked ? 1 : 0, 6, delta);
-    const s = splitRef.current;
-    if (topRef.current) topRef.current.position.y = s * 0.18;
-    if (bottomRef.current) bottomRef.current.position.y = -s * 0.18;
-    if (coreRef.current) {
-      const cs = THREE.MathUtils.damp(coreRef.current.scale.x, s, 6, delta);
-      coreRef.current.scale.setScalar(cs);
-    }
-
-    const shouldShow = isCracked && s > 0.4;
-    if (shouldShow !== cardVisRef.current) {
-      cardVisRef.current = shouldShow;
-      setShowCard(shouldShow);
-    }
+    // Suppress unused delta warning
+    void delta;
   });
 
-  const color = "#b8d8ff";
-  const emissive = "#7fb3ff";
-  const item = TOOLKIT[index];
-
-  const geom = (
-    <>
-      {geometryKind === "tetra" && <tetrahedronGeometry args={[0.16, 0]} />}
-      {geometryKind === "torus" && <torusGeometry args={[0.14, 0.04, 12, 32]} />}
-      {geometryKind === "box" && <boxGeometry args={[0.22, 0.22, 0.22]} />}
-      {geometryKind === "octa" && <octahedronGeometry args={[0.18, 0]} />}
-      {geometryKind === "cone" && <coneGeometry args={[0.14, 0.28, 4]} />}
-      {geometryKind === "ico" && <icosahedronGeometry args={[0.17, 0]} />}
-    </>
-  );
-
   return (
-    <group position={[baseX, baseY, baseZ]}
-      onClick={(e) => {
-        e.stopPropagation();
-        setActiveCrack(getActiveCrack() === `ch03-${index}` ? null : `ch03-${index}`);
-      }}
-      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-      onPointerOut={() => { document.body.style.cursor = "auto"; }}
-    >
-      {/* Top half */}
-      <mesh
-        ref={topRef}
-      >
-        {geom}
-        <meshStandardMaterial
-          ref={topMatRef}
-          color={color}
-          emissive={emissive}
-          emissiveIntensity={0.05}
-          roughness={0.4}
-          metalness={0.15}
-          clippingPlanes={[topPlane]}
-          clipShadows
-        />
-      </mesh>
+    <group ref={outerGroupRef} position={[baseX, baseY, baseZ]}>
+      <InteractiveObject
+        id={`ch03-${index}`}
+        label={item.tool}
+        logo={item.logo}
+        story={item.story}
+        position={[0, 0, 0]}
+        objectRadius={0.18}
+        fallbackGeometry={geometryKind}
+        color="#b8d8ff"
+        emissive="#7fb3ff"
+        baseEmissive={0.05}
+        baseEmissiveRef={baseEmissiveRef}
+      />
 
-      {/* Bottom half */}
-      <mesh ref={bottomRef}>
-        {geom}
-        <meshStandardMaterial
-          ref={bottomMatRef}
-          color={color}
-          emissive={emissive}
-          emissiveIntensity={0.05}
-          roughness={0.4}
-          metalness={0.15}
-          clippingPlanes={[bottomPlane]}
-          clipShadows
-        />
-      </mesh>
-
-      {/* Core glow */}
-      <mesh ref={coreRef} scale={0}>
-        <sphereGeometry args={[0.07, 8, 8]} />
-        <meshBasicMaterial
-          color="#f6b979"
-          transparent
-          opacity={0.9}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Halo ring */}
-      <mesh ref={halo} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* Halo ring — illumination glow at base of object */}
+      <mesh ref={haloRef} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.22, 0.30, 24]} />
         <meshBasicMaterial
-          color={emissive}
+          color="#7fb3ff"
           transparent
           opacity={0}
           depthWrite={false}
@@ -190,18 +103,6 @@ function IconMesh({
           side={THREE.DoubleSide}
         />
       </mesh>
-
-      {/* Story card */}
-      {showCard && (
-        <Html position={[0, 0.65, 0]} center>
-          <StoryCard
-            title={item.tool}
-            logo={item.logo}
-            story={item.story}
-            onClose={() => setActiveCrack(null)}
-          />
-        </Html>
-      )}
     </group>
   );
 }
