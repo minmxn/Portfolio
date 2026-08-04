@@ -14,6 +14,8 @@ export function BookIntroOverlay() {
   const poemWrapRef = useRef<HTMLDivElement>(null);
   const scrollWrapRef = useRef<HTMLDivElement>(null);
   const blackRef = useRef<HTMLDivElement>(null);
+  const burstRef = useRef<HTMLDivElement>(null);
+  const hasFiredBurst = useRef(false);
 
   useEffect(() => {
     // Maps progress x from [from, to] → [0, 1], clamped.
@@ -47,6 +49,20 @@ export function BookIntroOverlay() {
           opacity = 1 - lerp01(0.167, 0.200, p);
         }
         blackRef.current.style.opacity = String(opacity);
+      }
+
+      // Light burst: one-shot radial flash fired the moment the black peaks.
+      // Plays in real time (not scroll-driven) so it feels like an event, not a scrub.
+      if (p >= 0.167 && !hasFiredBurst.current && burstRef.current) {
+        hasFiredBurst.current = true;
+        burstRef.current.animate(
+          [
+            { opacity: "1", transform: "scale(0.82)" },
+            { opacity: "0.88", transform: "scale(1.05)", offset: 0.14 },
+            { opacity: "0", transform: "scale(1.65)" },
+          ],
+          { duration: 900, easing: "ease-out", fill: "forwards" },
+        );
       }
 
       rafId = requestAnimationFrame(tick);
@@ -100,6 +116,17 @@ export function BookIntroOverlay() {
         ref={blackRef}
         className="fixed inset-0 z-50 bg-black pointer-events-none"
         style={{ opacity: 0 }}
+      />
+
+      {/* Light burst — gold radial flash on top of the black at the book-exit threshold */}
+      <div
+        ref={burstRef}
+        className="fixed inset-0 z-[51] pointer-events-none"
+        style={{
+          opacity: 0,
+          background:
+            "radial-gradient(ellipse at center, rgba(255,245,205,0.97) 0%, rgba(255,215,80,0.6) 26%, rgba(200,140,30,0.2) 52%, transparent 70%)",
+        }}
       />
     </section>
   );
