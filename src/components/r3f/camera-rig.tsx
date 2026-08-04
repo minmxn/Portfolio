@@ -71,9 +71,9 @@ export function CameraRig() {
       const driftPos:  [number, number, number] = [-0.7,  2.0,  2.0];
       const driftLook: [number, number, number] = [-0.9, -0.2,  0.4];
       const divePos:   [number, number, number] = [-0.9,  0.2,  0.5];
-      const diveLook:  [number, number, number] = [-0.9, -1.5,  0.4];
-      const entryPos:  [number, number, number] = [-0.9, -0.3,  0.5];
-      const entryLook: [number, number, number] = [-0.9, -1.5,  0.4];
+      const diveLook:  [number, number, number] = [-0.9, -0.6,  0.4];
+      const entryPos:  [number, number, number] = [-0.9, -0.4,  0.45];
+      const entryLook: [number, number, number] = [-0.9, -0.6,  0.4];
 
       if (t <= 0.45) {
         // Hold: steep overhead sun position, camera stationary
