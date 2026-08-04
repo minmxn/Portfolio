@@ -21,7 +21,7 @@ export function EndSceneOverlay() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="max-w-xl"
+          className="max-w-xl pointer-events-auto"
         >
           <p className="font-serif text-2xl leading-relaxed text-foreground/90 italic sm:text-3xl">
             {poem.join(" ")}
