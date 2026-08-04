@@ -13,6 +13,13 @@ import { setProgress } from "./scroll-state";
 
 let _lenis: Lenis | null = null;
 
+/** The active Lenis instance, or null before mount / after unmount. Used by
+ * UI that needs to stop/start smooth scroll (e.g. locking background scroll
+ * behind a modal or mobile menu) without owning its own scroll listener. */
+export function getLenis(): Lenis | null {
+  return _lenis;
+}
+
 export function scrollToChapter(index: number): void {
   const target = index * window.innerHeight;
   if (_lenis) {

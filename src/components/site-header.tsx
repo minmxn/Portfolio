@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { site } from "@/content";
+import { getLenis } from "@/components/scroll/lenis-provider";
 
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null);
@@ -87,6 +88,25 @@ export function SiteHeader() {
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, []);
+
+  // Lock background scroll while the mobile menu is open. This site uses
+  // Lenis smooth scroll, so plain `overflow:hidden` on <body> isn't enough on
+  // its own — stop/start the shared Lenis instance instead, which also toggles
+  // the `.lenis-stopped` class the project's CSS already relies on.
+  useEffect(() => {
+    const lenis = getLenis();
+    if (menuOpen) {
+      lenis?.stop();
+      document.body.style.overflow = "hidden";
+    } else {
+      lenis?.start();
+      document.body.style.overflow = "";
+    }
+    return () => {
+      lenis?.start();
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   return (
     <header
