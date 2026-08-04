@@ -1,187 +1,45 @@
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
-import { StoryCard } from "@/components/r3f/story-card";
+import { InteractiveObject } from "@/components/r3f/interactive-object";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
-// Chapter 02 - "What drives me": a low-poly pedestal appears; on top rotates
-// an abstract interlocked torus-knot representing Nomo. Two warm-golden cone
-// light shafts sweep across the pedestal, drawn additively so they read as
-// light and not solid geometry.
-
-export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
+export function Chapter02Pedestal({ tier: _tier }: { tier: CapabilityTier }) {
   const group = useRef<THREE.Group>(null);
-  const knot = useRef<THREE.Mesh>(null);
-  const shaftA = useRef<THREE.Mesh>(null);
-  const shaftB = useRef<THREE.Mesh>(null);
-
-  const topColRef = useRef<THREE.Mesh>(null);
-  const bottomColRef = useRef<THREE.Mesh>(null);
-  const splitRef = useRef(0);
-  const cardVisRef = useRef(false);
-  const [showCard, setShowCard] = useState(false);
-
-  const { topPlane, bottomPlane } = useMemo(
-    () => ({
-      topPlane: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0),
-      bottomPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
-    }),
-    [],
-  );
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(2);
     if (!group.current) return;
     group.current.visible = p > 0.001;
 
-    // Pedestal group scales in during the first 30% of the chapter.
+    // Chapter scale-in over first 30%
     const scaleIn = Math.min(1, p / 0.3);
     const s = scaleIn * scaleIn * (3 - 2 * scaleIn);
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, s, 3, delta));
-
-    if (knot.current) {
-      knot.current.rotation.y += delta * 0.35;
-      knot.current.rotation.x += delta * 0.15;
-    }
-
-    // Light shafts sway slowly; opacity pulses.
-    const t = performance.now() * 0.0006;
-    if (shaftA.current) {
-      const mat = shaftA.current.material as THREE.MeshBasicMaterial;
-      shaftA.current.rotation.z = -0.35 + Math.sin(t) * 0.06;
-      mat.opacity = 0.28 + Math.sin(t * 1.3) * 0.08;
-    }
-    if (shaftB.current) {
-      const mat = shaftB.current.material as THREE.MeshBasicMaterial;
-      shaftB.current.rotation.z = 0.35 + Math.cos(t) * 0.06;
-      mat.opacity = 0.28 + Math.cos(t * 1.3) * 0.08;
-    }
 
     // Scroll-close: clear ch02 crack when outside chapter band
     if ((p <= 0 || p >= 1) && getActiveCrack() === "ch02-nomo") {
       setActiveCrack(null);
     }
-
-    // Pedestal crack animation
-    const isCracked = getActiveCrack() === "ch02-nomo";
-    splitRef.current = THREE.MathUtils.damp(splitRef.current, isCracked ? 1 : 0, 6, delta);
-    const split = splitRef.current;
-
-    if (topColRef.current) topColRef.current.position.y = split * 0.22;
-    if (bottomColRef.current) bottomColRef.current.position.y = -split * 0.22;
-
-    if (knot.current) {
-      const knotTarget = 1 + split * 0.5;
-      knot.current.scale.setScalar(
-        THREE.MathUtils.damp(knot.current.scale.x, knotTarget, 6, delta),
-      );
-    }
-
-    const shouldShow = isCracked && split > 0.4;
-    if (shouldShow !== cardVisRef.current) {
-      cardVisRef.current = shouldShow;
-      setShowCard(shouldShow);
-    }
   });
-
-  const pedestalColor = "#1a141c";
-  const knotColor = "#f5d18a";
-  const knotEmissive = tier === "full" ? 1.6 : 1.0;
-  const shaftColor = "#f6d795";
 
   return (
     <group ref={group} position={[-0.6, -0.2, 0]} scale={0.001}>
-      {/* Pedestal base (short wide cylinder) */}
-      <mesh position={[0, -0.35, 0]}>
-        <cylinderGeometry args={[0.35, 0.42, 0.12, 16]} />
-        <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
-      </mesh>
-      <group
-        onClick={(e) => {
-          e.stopPropagation();
-          setActiveCrack(getActiveCrack() === "ch02-nomo" ? null : "ch02-nomo");
-        }}
-        onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-        onPointerOut={() => { document.body.style.cursor = "auto"; }}
-      >
-        {/* Pedestal column — top half */}
-        <mesh ref={topColRef}>
-          <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
-          <meshStandardMaterial
-            color={pedestalColor}
-            roughness={0.85}
-            metalness={0.05}
-            clippingPlanes={[topPlane]}
-            clipShadows
-          />
-        </mesh>
-
-        {/* Pedestal column — bottom half */}
-        <mesh ref={bottomColRef}>
-          <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
-          <meshStandardMaterial
-            color={pedestalColor}
-            roughness={0.85}
-            metalness={0.05}
-            clippingPlanes={[bottomPlane]}
-            clipShadows
-          />
-        </mesh>
-      </group>
-
-      {/* Core glow sphere at column centre */}
-      {/* (scale animated imperatively via knot scale-up — no separate core mesh needed) */}
-
-      {/* Story card */}
-      {showCard && (
-        <Html position={[0, 1.1, 0]} center>
-          <StoryCard
-            title="Nomo"
-            story="Built Nomo from zero. Designed in Figma, shipped in React. Proof that I don't just write specs."
-            onClose={() => setActiveCrack(null)}
-          />
-        </Html>
-      )}
-
-      {/* Nomo glyph: an abstract interlocked torus-knot floating above the pedestal */}
-      <mesh ref={knot} position={[0, 0.55, 0]}>
-        <torusKnotGeometry args={[0.14, 0.04, 96, 12, 2, 3]} />
-        <meshStandardMaterial
-          color={knotColor}
-          emissive={knotColor}
-          emissiveIntensity={knotEmissive}
-          roughness={0.35}
-          metalness={0.3}
-        />
-      </mesh>
-      {/* Two warm-golden light shafts: tall thin cones drawn additively */}
-      <mesh ref={shaftA} position={[-0.35, 0.6, -0.2]} rotation={[0, 0, -0.35]}>
-        <coneGeometry args={[0.28, 1.4, 24, 1, true]} />
-        <meshBasicMaterial
-          color={shaftColor}
-          transparent
-          opacity={0.3}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      <mesh ref={shaftB} position={[0.35, 0.6, -0.2]} rotation={[0, 0, 0.35]}>
-        <coneGeometry args={[0.28, 1.4, 24, 1, true]} />
-        <meshBasicMaterial
-          color={shaftColor}
-          transparent
-          opacity={0.3}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      <InteractiveObject
+        id="ch02-nomo"
+        label="Nomo"
+        story="Built Nomo from zero. Designed in Figma, shipped in React. Proof that I don't just write specs."
+        position={[0, 0, 0]}
+        objectRadius={0.15}
+        fallbackGeometry="box"
+        color="#f5d18a"
+        emissive="#f5d18a"
+        baseEmissive={0.6}
+      />
     </group>
   );
 }
