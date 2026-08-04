@@ -36,7 +36,7 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
                   href={beat.cta.href}
                   target={beat.cta.external ? "_blank" : undefined}
                   rel={beat.cta.external ? "noreferrer" : undefined}
-                  className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
+                  className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
                 >
                   {beat.cta.label}
                 </a>

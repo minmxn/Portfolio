@@ -14,7 +14,7 @@ export function StaticNarrative() {
       {/* Static landing header */}
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <div className="max-w-3xl">
-          <p className="font-sans text-xs font-semibold tracking-[0.3em] text-glow uppercase">
+          <p className="font-sans text-xs font-semibold tracking-[0.3em] text-glow glow-halo uppercase">
             {site.location} · Portfolio
           </p>
           <h1 className="font-display mt-5 text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl">
@@ -41,7 +41,7 @@ export function StaticNarrative() {
           >
             <div className="flex items-center gap-3">
               <span className="size-2 rounded-full bg-glow" />
-              <span className="font-sans text-xs font-semibold tracking-[0.28em] text-glow uppercase">
+              <span className="font-sans text-xs font-semibold tracking-[0.28em] text-glow glow-halo uppercase">
                 {beat.kicker}
               </span>
               <span className="h-px flex-1 bg-foreground/15" aria-hidden />
@@ -105,7 +105,7 @@ export function StaticNarrative() {
                   href={beat.cta.href}
                   target={beat.cta.external ? "_blank" : undefined}
                   rel={beat.cta.external ? "noreferrer" : undefined}
-                  className="inline-flex items-center gap-2 border border-glow/50 bg-glow/10 px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase"
+                  className="inline-flex items-center gap-2 border border-glow/50 bg-glow/10 px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase"
                 >
                   {beat.cta.label}
                 </a>

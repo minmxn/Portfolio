@@ -128,7 +128,7 @@
     );
   }
   /* Soft luminous halo behind glowing type/marks in the 3D narrative. */
-  .text-glow {
+  .glow-halo {
     text-shadow: 0 0 22px color-mix(in oklch, var(--glow) 55%, transparent);
   }
   /* Radial ambient light, used by the static (no-WebGL) fallback stage. */
