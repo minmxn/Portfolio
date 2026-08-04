@@ -42,7 +42,7 @@ function IconMesh({
 
   const item = TOOLKIT[index];
 
-  useFrame((_, delta) => {
+  useFrame((_state) => {
     const p = chapterLocalProgress(3);
 
     // Illumination sweep: writes to baseEmissiveRef for InteractiveObject to read
@@ -70,9 +70,6 @@ function IconMesh({
     if ((p <= 0 || p >= 1) && getActiveCrack()?.startsWith("ch03")) {
       setActiveCrack(null);
     }
-
-    // Suppress unused delta warning
-    void delta;
   });
 
   return (

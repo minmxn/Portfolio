@@ -67,6 +67,8 @@ function FallbackMesh({
 
 // ---------------------------------------------------------------------------
 // GlbMesh — renders a loaded GLB. Wrap the call site in <React.Suspense>.
+// Callers that pass a static model path should add `useGLTF.preload(path)` at
+// their own module scope (see character.tsx for the pattern).
 // ---------------------------------------------------------------------------
 function GlbMesh({ path }: { path: string }) {
   const { scene } = useGLTF(path);
