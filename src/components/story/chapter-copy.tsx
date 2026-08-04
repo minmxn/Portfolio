@@ -12,7 +12,7 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
       data-label={beat.label}
       className="relative h-[100vh] pointer-events-none"
     >
-      <div className="sticky top-0 flex min-h-screen items-center px-6 md:pl-10 lg:pl-44">
+      <div className="sticky top-0 mx-auto flex min-h-screen max-w-6xl items-center px-6">
         <div className="animate-float w-full max-w-[420px] pointer-events-auto">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
