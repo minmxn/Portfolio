@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshTransmissionMaterial, Line } from "@react-three/drei";
+import { MeshTransmissionMaterial, Line, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
-import { setHoveredSpec } from "@/components/scroll/spec-hover-state";
+import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
+import { StoryCard } from "@/components/r3f/story-card";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
-import { story } from "@/content";
 
 // Chapter 01 - "What I do": tangled low-poly wireframe knot morphs into a
 // geometric crystal skeleton using Three.js morphAttributes. Toward the end
@@ -18,14 +18,27 @@ import { story } from "@/content";
 // High segment count keeps all curves visually smooth (no polygon look).
 const SEGMENT_COUNT = 210;
 const TWO_PI = Math.PI * 2;
-const SPECS = story[1].spec ?? [];
 const POSITIONS: [number, number, number][] = [
   [-1.2, 0.8, 0],
   [1.4, 0.1, 0],
   [-0.8, -1.0, 0],
 ];
 const BASE_EMISSIVE = 0.3;
-const HOVER_EMISSIVE = 1.0;
+
+const PROJECTS = [
+  {
+    name: "Nomo",
+    story: "Built a productivity app from zero. First time I proved I could ship, not just spec.",
+  },
+  {
+    name: "Generative AI Video",
+    story: "Explored how gen AI could produce video at scale. Part research, part prototype.",
+  },
+  {
+    name: "Gifted Education Programme",
+    story: "Multi-stakeholder, no clear brief. I mapped the chaos and turned it into a roadmap.",
+  },
+] as const;
 
 function makeSquigglyLines(): Float32Array {
   const positions = new Float32Array(SEGMENT_COUNT * 2 * 3);
@@ -115,11 +128,22 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const linesRef = useRef<any>(null); // Line2 / LineSegments2 from drei
   const crystal = useRef<THREE.Mesh>(null);
-  const hoveredIndexRef = useRef<number | null>(null);
-  const nodeMatRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([null, null, null]);
-  const emissiveValues = useRef([BASE_EMISSIVE, BASE_EMISSIVE, BASE_EMISSIVE]);
   const nodesGroupRef = useRef<THREE.Group>(null!);
   const nodeScaleValue = useRef(0);
+  const splitRefs = useRef([0, 0, 0]);
+  const topHalfRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
+  const bottomHalfRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
+  const coreRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
+  const cardIndexRef = useRef<number | null>(null);
+  const [cardIndex, setCardIndex] = useState<number | null>(null);
+
+  const { topPlane, bottomPlane } = useMemo(
+    () => ({
+      topPlane: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0),
+      bottomPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+    }),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -150,7 +174,11 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
     if (!group.current) return;
     group.current.visible = p > 0.001;
 
-    group.current.rotation.y += delta * 0.12;
+    // Pause crystal rotation while a crack is open (prevents card orbiting)
+    const anyOpen = getActiveCrack()?.startsWith("ch01") ?? false;
+    if (!anyOpen) {
+      group.current.rotation.y += delta * 0.12;
+    }
 
     if (linesRef.current) {
       const morph = Math.min(1, p / 0.7);
@@ -193,18 +221,35 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
       nodesGroupRef.current.scale.setScalar(nodeScaleValue.current);
     }
 
-    // Per-node emissive intensity damping
+    // Per-node crack animation
+    let newCardIndex: number | null = null;
     for (let i = 0; i < 3; i++) {
-      const targetEmissive =
-        hoveredIndexRef.current === i ? HOVER_EMISSIVE : BASE_EMISSIVE;
-      emissiveValues.current[i] = THREE.MathUtils.damp(
-        emissiveValues.current[i],
-        targetEmissive,
-        8,
+      const isThisOpen = getActiveCrack() === `ch01-${i}`;
+      splitRefs.current[i] = THREE.MathUtils.damp(
+        splitRefs.current[i],
+        isThisOpen ? 1 : 0,
+        6,
         delta,
       );
-      const mat = nodeMatRefs.current[i];
-      if (mat) mat.emissiveIntensity = emissiveValues.current[i];
+      const s = splitRefs.current[i];
+
+      const top = topHalfRefs.current[i];
+      const bottom = bottomHalfRefs.current[i];
+      const core = coreRefs.current[i];
+
+      if (top) top.position.y = s * 0.1;
+      if (bottom) bottom.position.y = -s * 0.1;
+      if (core) {
+        const cs = THREE.MathUtils.damp(core.scale.x, s, 6, delta);
+        core.scale.setScalar(cs);
+      }
+
+      if (isThisOpen && s > 0.4) newCardIndex = i;
+    }
+
+    if (newCardIndex !== cardIndexRef.current) {
+      cardIndexRef.current = newCardIndex;
+      setCardIndex(newCardIndex);
     }
   });
 
@@ -246,30 +291,62 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
       </mesh>
 
       <group ref={nodesGroupRef}>
-        {SPECS.map((spec, i) => (
-          <group key={spec} position={POSITIONS[i]}>
+        {PROJECTS.map((proj, i) => (
+          <group key={proj.name} position={POSITIONS[i]}>
+            {/* Top half */}
             <mesh
-              onPointerOver={() => {
-                hoveredIndexRef.current = i;
-                setHoveredSpec(SPECS[i]);
-                document.body.style.cursor = "pointer";
+              ref={(m) => { topHalfRefs.current[i] = m; }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveCrack(getActiveCrack() === `ch01-${i}` ? null : `ch01-${i}`);
               }}
-              onPointerOut={() => {
-                hoveredIndexRef.current = null;
-                setHoveredSpec(null);
-                document.body.style.cursor = "auto";
-              }}
+              onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+              onPointerOut={() => { document.body.style.cursor = "auto"; }}
             >
               <sphereGeometry args={[0.1, 16, 16]} />
               <meshStandardMaterial
-                ref={(m) => {
-                  nodeMatRefs.current[i] = m;
-                }}
                 color="#a8d8ff"
                 emissive="#4499cc"
                 emissiveIntensity={BASE_EMISSIVE}
+                clippingPlanes={[topPlane]}
+                clipShadows
               />
             </mesh>
+
+            {/* Bottom half */}
+            <mesh ref={(m) => { bottomHalfRefs.current[i] = m; }}>
+              <sphereGeometry args={[0.1, 16, 16]} />
+              <meshStandardMaterial
+                color="#a8d8ff"
+                emissive="#4499cc"
+                emissiveIntensity={BASE_EMISSIVE}
+                clippingPlanes={[bottomPlane]}
+                clipShadows
+              />
+            </mesh>
+
+            {/* Core glow sphere */}
+            <mesh ref={(m) => { coreRefs.current[i] = m; }} scale={0}>
+              <sphereGeometry args={[0.06, 8, 8]} />
+              <meshBasicMaterial
+                color="#f6b979"
+                transparent
+                opacity={0.9}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
+
+            {/* Story card */}
+            {cardIndex === i && (
+              <Html position={[0, 0.65, 0]} center>
+                <StoryCard
+                  title={proj.name}
+                  story={proj.story}
+                  onClose={() => setActiveCrack(null)}
+                />
+              </Html>
+            )}
           </group>
         ))}
       </group>
