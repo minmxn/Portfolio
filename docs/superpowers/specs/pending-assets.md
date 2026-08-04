@@ -137,11 +137,18 @@ considering the redesign done.
 
 ### General sweep, both 1440×900 and 390×844, scroll 0/1200/2500/4000/5600/7400
 
-- No vermillion/orange color anywhere (cyan is the sole accent now).
+- No vermillion/orange color anywhere on `/` (cyan is the sole accent now).
+  Known, accepted exception: `/projects/nomo` and `/projects/kling` still use
+  `--brand` (vermillion) for `.dropcap::first-letter` — those case-study
+  routes are deliberately out of scope for this branch, so don't flag it.
 - No boxed project tags, no bordered contact card, no certifications table
   frame/column-header row/filled status chip.
 - Every section heading shares one left edge.
 - Nothing passes through or overlaps the header.
+- At 1440px, confirm the section kickers and cyan links render flat, with no
+  glow halo (only the 3D narrative — chapter CTAs, end-scene CTAs, the
+  chapter rail's active indicator, the static-narrative fallback — should
+  show the soft text-shadow bloom).
 - DevTools console: zero errors across a full scroll of the page. One
   `THREE.Clock` → `THREE.Timer` deprecation **warning** is pre-existing and
   out of scope — do not treat it as a failure.
