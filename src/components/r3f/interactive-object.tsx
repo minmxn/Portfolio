@@ -20,6 +20,7 @@ function BeaconRing({ id, objectRadius }: { id: string; objectRadius: number }) 
     if (!ringRef.current) return;
     const mat = ringRef.current.material as THREE.MeshBasicMaterial;
     if (getActiveCrack() === id) {
+      tRef.current = 0;
       mat.opacity = 0;
       return;
     }
@@ -128,6 +129,7 @@ export function InteractiveObject({
     if (meshGroupRef.current) {
       meshGroupRef.current.scale.setScalar(1 + s * 0.3);
     }
+    // matRef only attaches to the fallback meshStandardMaterial — no-op for GLB models by design.
     if (matRef.current) {
       const base = baseEmissiveRef ? baseEmissiveRef.current : baseEmissive;
       matRef.current.emissiveIntensity = base + s * 1.8;
@@ -207,3 +209,5 @@ export function InteractiveObject({
     </group>
   );
 }
+
+export default InteractiveObject;
