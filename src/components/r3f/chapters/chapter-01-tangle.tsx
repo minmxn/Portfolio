@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshTransmissionMaterial, Line, Html } from "@react-three/drei";
+import { MeshTransmissionMaterial, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
 import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
-import { StoryCard } from "@/components/r3f/story-card";
+import { InteractiveObject } from "@/components/r3f/interactive-object";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
 // Chapter 01 - "What I do": tangled low-poly wireframe knot morphs into a
@@ -23,8 +23,6 @@ const POSITIONS: [number, number, number][] = [
   [1.4, 0.1, 0],
   [-0.8, -1.0, 0],
 ];
-const BASE_EMISSIVE = 0.3;
-
 const PROJECTS = [
   {
     name: "Nomo",
@@ -130,27 +128,6 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
   const crystal = useRef<THREE.Mesh>(null);
   const nodesGroupRef = useRef<THREE.Group>(null!);
   const nodeScaleValue = useRef(0);
-  const splitRefs = useRef([0, 0, 0]);
-  const topHalfRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
-  const bottomHalfRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
-  const coreRefs = useRef<(THREE.Mesh | null)[]>([null, null, null]);
-  const cardIndexRef = useRef<number | null>(null);
-  const [cardIndex, setCardIndex] = useState<number | null>(null);
-
-  const { topPlane, bottomPlane } = useMemo(
-    () => ({
-      topPlane: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0),
-      bottomPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    return () => {
-      document.body.style.cursor = "auto";
-    };
-  }, []);
-
   const buffers = useMemo(() => {
     const tangled = makeSquigglyLines();
     const crystal = makeCrystalArcs();
@@ -225,37 +202,6 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
     if ((p <= 0 || p >= 1) && getActiveCrack()?.startsWith("ch01")) {
       setActiveCrack(null);
     }
-
-    // Per-node crack animation
-    let newCardIndex: number | null = null;
-    for (let i = 0; i < 3; i++) {
-      const isThisOpen = getActiveCrack() === `ch01-${i}`;
-      splitRefs.current[i] = THREE.MathUtils.damp(
-        splitRefs.current[i],
-        isThisOpen ? 1 : 0,
-        6,
-        delta,
-      );
-      const s = splitRefs.current[i];
-
-      const top = topHalfRefs.current[i];
-      const bottom = bottomHalfRefs.current[i];
-      const core = coreRefs.current[i];
-
-      if (top) top.position.y = s * 0.1;
-      if (bottom) bottom.position.y = -s * 0.1;
-      if (core) {
-        const cs = THREE.MathUtils.damp(core.scale.x, s, 6, delta);
-        core.scale.setScalar(cs);
-      }
-
-      if (isThisOpen && s > 0.4) newCardIndex = i;
-    }
-
-    if (newCardIndex !== cardIndexRef.current) {
-      cardIndexRef.current = newCardIndex;
-      setCardIndex(newCardIndex);
-    }
   });
 
   return (
@@ -297,63 +243,18 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
 
       <group ref={nodesGroupRef}>
         {PROJECTS.map((proj, i) => (
-          <group key={proj.name} position={POSITIONS[i]}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveCrack(getActiveCrack() === `ch01-${i}` ? null : `ch01-${i}`);
-            }}
-            onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-            onPointerOut={() => { document.body.style.cursor = "auto"; }}
-          >
-            {/* Top half */}
-            <mesh
-              ref={(m) => { topHalfRefs.current[i] = m; }}
-            >
-              <sphereGeometry args={[0.1, 16, 16]} />
-              <meshStandardMaterial
-                color="#a8d8ff"
-                emissive="#4499cc"
-                emissiveIntensity={BASE_EMISSIVE}
-                clippingPlanes={[topPlane]}
-                clipShadows
-              />
-            </mesh>
-
-            {/* Bottom half */}
-            <mesh ref={(m) => { bottomHalfRefs.current[i] = m; }}>
-              <sphereGeometry args={[0.1, 16, 16]} />
-              <meshStandardMaterial
-                color="#a8d8ff"
-                emissive="#4499cc"
-                emissiveIntensity={BASE_EMISSIVE}
-                clippingPlanes={[bottomPlane]}
-                clipShadows
-              />
-            </mesh>
-
-            {/* Core glow sphere */}
-            <mesh ref={(m) => { coreRefs.current[i] = m; }} scale={0}>
-              <sphereGeometry args={[0.06, 8, 8]} />
-              <meshBasicMaterial
-                color="#f6b979"
-                transparent
-                opacity={0.9}
-                blending={THREE.AdditiveBlending}
-                depthWrite={false}
-              />
-            </mesh>
-
-            {/* Story card */}
-            {cardIndex === i && (
-              <Html position={[0, 0.65, 0]} center>
-                <StoryCard
-                  title={proj.name}
-                  story={proj.story}
-                  onClose={() => setActiveCrack(null)}
-                />
-              </Html>
-            )}
-          </group>
+          <InteractiveObject
+            key={proj.name}
+            id={`ch01-${i}`}
+            label={proj.name}
+            story={proj.story}
+            position={POSITIONS[i]}
+            objectRadius={0.1}
+            fallbackGeometry="sphere"
+            color="#a8d8ff"
+            emissive="#4499cc"
+            baseEmissive={0.3}
+          />
         ))}
       </group>
     </group>
