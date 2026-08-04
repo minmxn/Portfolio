@@ -45,14 +45,14 @@ function IconMesh({
   useFrame((_, delta) => {
     const p = chapterLocalProgress(3);
 
-    // Illumination sweep — writes to baseEmissiveRef for InteractiveObject to read
+    // Illumination sweep: writes to baseEmissiveRef for InteractiveObject to read
     const start = index / ITEMS;
     const end = start + 0.35;
     const local = Math.max(0, Math.min(1, (p - start) / (end - start)));
     const eased = local * local * (3 - 2 * local);
     baseEmissiveRef.current = 0.05 + eased * 2.2;
 
-    // Bob animation — writes directly to outer group Y
+    // Bob animation: writes directly to outer group Y
     const t = performance.now() * 0.0007;
     const groupY = baseY + Math.sin(t + index) * 0.08;
     if (outerGroupRef.current) {
@@ -91,7 +91,7 @@ function IconMesh({
         baseEmissiveRef={baseEmissiveRef}
       />
 
-      {/* Halo ring — illumination glow at base of object */}
+      {/* Halo ring: illumination glow at base of object */}
       <mesh ref={haloRef} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.22, 0.30, 24]} />
         <meshBasicMaterial
