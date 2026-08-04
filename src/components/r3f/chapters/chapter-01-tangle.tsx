@@ -221,6 +221,11 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
       nodesGroupRef.current.scale.setScalar(nodeScaleValue.current);
     }
 
+    // Scroll-close: clear ch01 cracks when outside chapter band
+    if ((p <= 0 || p >= 1) && getActiveCrack()?.startsWith("ch01")) {
+      setActiveCrack(null);
+    }
+
     // Per-node crack animation
     let newCardIndex: number | null = null;
     for (let i = 0; i < 3; i++) {
@@ -292,16 +297,17 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
 
       <group ref={nodesGroupRef}>
         {PROJECTS.map((proj, i) => (
-          <group key={proj.name} position={POSITIONS[i]}>
+          <group key={proj.name} position={POSITIONS[i]}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveCrack(getActiveCrack() === `ch01-${i}` ? null : `ch01-${i}`);
+            }}
+            onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+            onPointerOut={() => { document.body.style.cursor = "auto"; }}
+          >
             {/* Top half */}
             <mesh
               ref={(m) => { topHalfRefs.current[i] = m; }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveCrack(getActiveCrack() === `ch01-${i}` ? null : `ch01-${i}`);
-              }}
-              onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-              onPointerOut={() => { document.body.style.cursor = "auto"; }}
             >
               <sphereGeometry args={[0.1, 16, 16]} />
               <meshStandardMaterial

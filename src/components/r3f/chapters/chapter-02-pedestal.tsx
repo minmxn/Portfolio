@@ -62,6 +62,11 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
       mat.opacity = 0.28 + Math.cos(t * 1.3) * 0.08;
     }
 
+    // Scroll-close: clear ch02 crack when outside chapter band
+    if ((p <= 0 || p >= 1) && getActiveCrack() === "ch02-nomo") {
+      setActiveCrack(null);
+    }
+
     // Pedestal crack animation
     const isCracked = getActiveCrack() === "ch02-nomo";
     splitRef.current = THREE.MathUtils.damp(splitRef.current, isCracked ? 1 : 0, 6, delta);
@@ -96,9 +101,7 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
         <cylinderGeometry args={[0.35, 0.42, 0.12, 16]} />
         <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
       </mesh>
-      {/* Pedestal column — top half */}
-      <mesh
-        ref={topColRef}
+      <group
         onClick={(e) => {
           e.stopPropagation();
           setActiveCrack(getActiveCrack() === "ch02-nomo" ? null : "ch02-nomo");
@@ -106,27 +109,30 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
         onPointerOver={() => { document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { document.body.style.cursor = "auto"; }}
       >
-        <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
-        <meshStandardMaterial
-          color={pedestalColor}
-          roughness={0.85}
-          metalness={0.05}
-          clippingPlanes={[topPlane]}
-          clipShadows
-        />
-      </mesh>
+        {/* Pedestal column — top half */}
+        <mesh ref={topColRef}>
+          <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
+          <meshStandardMaterial
+            color={pedestalColor}
+            roughness={0.85}
+            metalness={0.05}
+            clippingPlanes={[topPlane]}
+            clipShadows
+          />
+        </mesh>
 
-      {/* Pedestal column — bottom half */}
-      <mesh ref={bottomColRef}>
-        <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
-        <meshStandardMaterial
-          color={pedestalColor}
-          roughness={0.85}
-          metalness={0.05}
-          clippingPlanes={[bottomPlane]}
-          clipShadows
-        />
-      </mesh>
+        {/* Pedestal column — bottom half */}
+        <mesh ref={bottomColRef}>
+          <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
+          <meshStandardMaterial
+            color={pedestalColor}
+            roughness={0.85}
+            metalness={0.05}
+            clippingPlanes={[bottomPlane]}
+            clipShadows
+          />
+        </mesh>
+      </group>
 
       {/* Core glow sphere at column centre */}
       {/* (scale animated imperatively via knot scale-up — no separate core mesh needed) */}

@@ -88,6 +88,11 @@ function IconMesh({
       halo.current.scale.setScalar(0.7 + eased * 0.35);
     }
 
+    // Scroll-close: clear ch03 cracks when outside chapter band
+    if ((p <= 0 || p >= 1) && getActiveCrack()?.startsWith("ch03")) {
+      setActiveCrack(null);
+    }
+
     // Crack animation
     splitRef.current = THREE.MathUtils.damp(splitRef.current, isCracked ? 1 : 0, 6, delta);
     const s = splitRef.current;
@@ -121,16 +126,17 @@ function IconMesh({
   );
 
   return (
-    <group position={[baseX, baseY, baseZ]}>
+    <group position={[baseX, baseY, baseZ]}
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveCrack(getActiveCrack() === `ch03-${index}` ? null : `ch03-${index}`);
+      }}
+      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+      onPointerOut={() => { document.body.style.cursor = "auto"; }}
+    >
       {/* Top half */}
       <mesh
         ref={topRef}
-        onClick={(e) => {
-          e.stopPropagation();
-          setActiveCrack(getActiveCrack() === `ch03-${index}` ? null : `ch03-${index}`);
-        }}
-        onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-        onPointerOut={() => { document.body.style.cursor = "auto"; }}
       >
         {geom}
         <meshStandardMaterial

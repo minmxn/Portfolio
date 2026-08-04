@@ -65,6 +65,18 @@ export function StoryCard({ title, logo, story, onClose }: StoryCardProps) {
           color: rgba(255,255,255,0.65);
           line-height: 1.5;
         }
+        @media (max-width: 767px) {
+          .story-card {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 12px 12px 0 0;
+            max-width: 100%;
+            min-width: unset;
+            padding: 20px 16px 24px;
+          }
+        }
       `}</style>
       <div
         className="story-card"
