@@ -41,23 +41,23 @@ export const edition = {
   volume: "Vol. I · No. 1",
   sections: {
     about: {
-      kicker: "The profile",
+      kicker: "the profile",
       title: "About",
       dek: "Who is behind the byline, and how she works.",
     },
     projects: {
-      kicker: "Selected works",
-      title: "The Work",
+      kicker: "selected works",
+      title: "Things I've Built",
       dek: "A few things I have built, shipped, and explored.",
     },
     certifications: {
-      kicker: "On the record",
-      title: "Credentials on File",
+      kicker: "what I've earned",
+      title: "Proof of the Journey",
       dek: "What I have earned, and what I am studying for now.",
     },
     contact: {
-      kicker: "Correspondence",
-      title: "Letters and Commissions",
+      kicker: "how to reach me",
+      title: "Signals Welcome",
       dek: "Open to product roles and to building useful things together.",
     },
   },
