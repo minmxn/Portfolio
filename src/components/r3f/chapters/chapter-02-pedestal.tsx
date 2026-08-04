@@ -1,9 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { chapterLocalProgress } from "@/components/scroll/scroll-state";
+import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
+import { StoryCard } from "@/components/r3f/story-card";
 import type { CapabilityTier } from "@/hooks/use-device-capability";
 
 // Chapter 02 - "What drives me": a low-poly pedestal appears; on top rotates
@@ -16,6 +19,20 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
   const knot = useRef<THREE.Mesh>(null);
   const shaftA = useRef<THREE.Mesh>(null);
   const shaftB = useRef<THREE.Mesh>(null);
+
+  const topColRef = useRef<THREE.Mesh>(null);
+  const bottomColRef = useRef<THREE.Mesh>(null);
+  const splitRef = useRef(0);
+  const cardVisRef = useRef(false);
+  const [showCard, setShowCard] = useState(false);
+
+  const { topPlane, bottomPlane } = useMemo(
+    () => ({
+      topPlane: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0),
+      bottomPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+    }),
+    [],
+  );
 
   useFrame((_, delta) => {
     const p = chapterLocalProgress(2);
@@ -44,6 +61,27 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
       shaftB.current.rotation.z = 0.35 + Math.cos(t) * 0.06;
       mat.opacity = 0.28 + Math.cos(t * 1.3) * 0.08;
     }
+
+    // Pedestal crack animation
+    const isCracked = getActiveCrack() === "ch02-nomo";
+    splitRef.current = THREE.MathUtils.damp(splitRef.current, isCracked ? 1 : 0, 6, delta);
+    const split = splitRef.current;
+
+    if (topColRef.current) topColRef.current.position.y = split * 0.22;
+    if (bottomColRef.current) bottomColRef.current.position.y = -split * 0.22;
+
+    if (knot.current) {
+      const knotTarget = 1 + split * 0.5;
+      knot.current.scale.setScalar(
+        THREE.MathUtils.damp(knot.current.scale.x, knotTarget, 6, delta),
+      );
+    }
+
+    const shouldShow = isCracked && split > 0.4;
+    if (shouldShow !== cardVisRef.current) {
+      cardVisRef.current = shouldShow;
+      setShowCard(shouldShow);
+    }
   });
 
   const pedestalColor = "#1a141c";
@@ -58,11 +96,52 @@ export function Chapter02Pedestal({ tier }: { tier: CapabilityTier }) {
         <cylinderGeometry args={[0.35, 0.42, 0.12, 16]} />
         <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
       </mesh>
-      {/* Pedestal column */}
-      <mesh position={[0, 0, 0]}>
+      {/* Pedestal column — top half */}
+      <mesh
+        ref={topColRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveCrack(getActiveCrack() === "ch02-nomo" ? null : "ch02-nomo");
+        }}
+        onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+        onPointerOut={() => { document.body.style.cursor = "auto"; }}
+      >
         <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
-        <meshStandardMaterial color={pedestalColor} roughness={0.85} metalness={0.05} />
+        <meshStandardMaterial
+          color={pedestalColor}
+          roughness={0.85}
+          metalness={0.05}
+          clippingPlanes={[topPlane]}
+          clipShadows
+        />
       </mesh>
+
+      {/* Pedestal column — bottom half */}
+      <mesh ref={bottomColRef}>
+        <cylinderGeometry args={[0.18, 0.22, 0.6, 12]} />
+        <meshStandardMaterial
+          color={pedestalColor}
+          roughness={0.85}
+          metalness={0.05}
+          clippingPlanes={[bottomPlane]}
+          clipShadows
+        />
+      </mesh>
+
+      {/* Core glow sphere at column centre */}
+      {/* (scale animated imperatively via knot scale-up — no separate core mesh needed) */}
+
+      {/* Story card */}
+      {showCard && (
+        <Html position={[0, 1.1, 0]} center>
+          <StoryCard
+            title="Nomo"
+            story="Built Nomo from zero. Designed in Figma, shipped in React. Proof that I don't just write specs."
+            onClose={() => setActiveCrack(null)}
+          />
+        </Html>
+      )}
+
       {/* Nomo glyph: an abstract interlocked torus-knot floating above the pedestal */}
       <mesh ref={knot} position={[0, 0.55, 0]}>
         <torusKnotGeometry args={[0.14, 0.04, 96, 12, 2, 3]} />
