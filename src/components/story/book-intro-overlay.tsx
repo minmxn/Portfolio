@@ -15,7 +15,9 @@ export function BookIntroOverlay() {
   const scrollWrapRef = useRef<HTMLDivElement>(null);
   const blackRef = useRef<HTMLDivElement>(null);
   const burstRef = useRef<HTMLDivElement>(null);
-  const hasFiredBurst = useRef(false);
+  // burst: -1 = waiting, 0..1 = playing, 2 = done
+  const burstProgress = useRef(-1);
+  const lastTs = useRef(0);
 
   useEffect(() => {
     // Maps progress x from [from, to] → [0, 1], clamped.
@@ -27,7 +29,10 @@ export function BookIntroOverlay() {
 
     let rafId: number;
 
-    function tick() {
+    function tick(ts: number) {
+      const delta = lastTs.current === 0 ? 0 : Math.min((ts - lastTs.current) / 1000, 0.1);
+      lastTs.current = ts;
+
       const p = scrollState.progress;
 
       // SCROLL indicator: exit 0.075 → 0.085
@@ -51,18 +56,19 @@ export function BookIntroOverlay() {
         blackRef.current.style.opacity = String(opacity);
       }
 
-      // Light burst: one-shot radial flash fired the moment the black peaks.
-      // Plays in real time (not scroll-driven) so it feels like an event, not a scrub.
-      if (p >= 0.167 && !hasFiredBurst.current && burstRef.current) {
-        hasFiredBurst.current = true;
-        burstRef.current.animate(
-          [
-            { opacity: "1", transform: "scale(0.82)" },
-            { opacity: "0.88", transform: "scale(1.05)", offset: 0.14 },
-            { opacity: "0", transform: "scale(1.65)" },
-          ],
-          { duration: 900, easing: "ease-out", fill: "forwards" },
-        );
+      // Light burst: fires at black-peak, plays in real time via delta.
+      // Trigger slightly before peak (0.163) so the glow is visible on a dark background.
+      if (p >= 0.163 && burstProgress.current === -1) {
+        burstProgress.current = 0;
+      }
+      if (burstRef.current && burstProgress.current >= 0 && burstProgress.current <= 1) {
+        const DURATION = 1.1; // seconds
+        burstProgress.current = Math.min(1, burstProgress.current + delta / DURATION);
+        const t = burstProgress.current;
+        const eased = 1 - Math.pow(1 - t, 2); // ease-out quad
+        burstRef.current.style.opacity = String(1 - eased);
+        burstRef.current.style.transform = `scale(${0.82 + eased * 1.0})`;
+        if (burstProgress.current >= 1) burstProgress.current = 2; // mark done
       }
 
       rafId = requestAnimationFrame(tick);
@@ -118,14 +124,15 @@ export function BookIntroOverlay() {
         style={{ opacity: 0 }}
       />
 
-      {/* Light burst — gold radial flash on top of the black at the book-exit threshold */}
+      {/* Light burst — gold radial flash fired at book-exit. z-index 51 sits above black (50). */}
       <div
         ref={burstRef}
-        className="fixed inset-0 z-[51] pointer-events-none"
+        className="fixed inset-0 pointer-events-none"
         style={{
+          zIndex: 51,
           opacity: 0,
           background:
-            "radial-gradient(ellipse at center, rgba(255,245,205,0.97) 0%, rgba(255,215,80,0.6) 26%, rgba(200,140,30,0.2) 52%, transparent 70%)",
+            "radial-gradient(ellipse at center, rgba(255,248,210,1) 0%, rgba(255,218,80,0.75) 24%, rgba(200,140,30,0.28) 50%, transparent 68%)",
         }}
       />
     </section>
