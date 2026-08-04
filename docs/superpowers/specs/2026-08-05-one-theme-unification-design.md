@@ -176,29 +176,59 @@ character of every heading and every poem line at 1440px width.
 
 ## Section 5: Tool Labels → Chapter 03 Only
 
-**Files:** `src/components/story/spec-label.tsx`,
-`src/components/r3f/chapters/chapter-03-toolkit.tsx`, wherever the ambient label
-layer is mounted
+**File:** `src/components/r3f/interactive-object.tsx` (one file)
 
-Currently these labels (SQL, FIGMA, JIRA, CONFLUENCE, EXCEL, NOMO, GIFTED EDUCATION
-PROGRAMME, GENERATIVE AI VIDEO) drift across every scene at every depth. They
-overlap into unreadable collisions on the intro (observed: "GIFTED" and "GENERATIVE
-AI VIDEO" rendering on top of each other), and "NOMO" appears twice in a single
-frame.
+### Corrected root cause
 
-**Change:**
+Investigation during planning found the real defect, which is narrower and more
+mechanical than "labels need authored positions."
 
-- The ambient label layer is removed from the intro, Ch01, Ch02, Ch04, and the end
-  scene. Those scenes get empty sky.
-- In Ch03, each label attaches to one of the six toolkit icon objects, positioned
-  beneath its own object in screen space.
-- Resting state is low opacity; the label brightens when its object is hovered,
-  reusing the existing hover mechanism in `interactive-object.tsx` and
-  `spec-hover-state.ts`.
-- Each label appears exactly once.
+There is no ambient label layer. Every label is a drei `<Html>` rendered by
+`InteractiveObject` at `interactive-object.tsx:179`. Each chapter hides itself
+per-frame by setting Three.js visibility on its group:
 
-This turns the labels from ambient debris into the actual point of the toolkit
-chapter.
+- `chapter-01-tangle.tsx:152` — `group.current.visible = p > 0.001`
+- `chapter-02-pedestal.tsx:17` — same
+- `chapter-03-toolkit.tsx:113` — same
+
+**`<Html>` does not inherit Three.js `.visible`.** It portals into the DOM and
+projects to screen space regardless of the parent group's visibility. So when a
+chapter hides, its *meshes* disappear correctly but its *labels* keep rendering
+on top of whatever scene the camera is actually framing.
+
+All five chapter groups are mounted simultaneously (`scene.tsx:54-58`), so every
+label from every chapter renders at all times. This explains every symptom exactly:
+
+- Labels appear on the intro, where no interactive object is visible
+- They land in meaningless positions — they are projections of off-camera objects
+- "NOMO" appears twice because Ch01 has a Nomo project sphere
+  (`chapter-01-tangle.tsx:246`) and Ch02 has a Nomo pedestal
+  (`chapter-02-pedestal.tsx:34`)
+- They overlap into unreadable collisions because objects at different depths in
+  different chapters project to nearby screen coordinates
+
+### Change
+
+`InteractiveObject` accepts a new required prop `chapterIndex: number` and renders
+its `<Html>` label only while that chapter is the active one.
+
+Visibility is computed in the existing `useFrame` and pushed through a ref-guarded
+`useState`, mirroring the `cardVisRef` / `setShowCard` pattern already at
+`interactive-object.tsx:140-144`, so the per-frame check does not re-render.
+
+The condition is `chapterLocalProgress(chapterIndex) > 0.001`, matching the exact
+expression each chapter group already uses for its own mesh visibility. Labels and
+meshes then appear and disappear together by construction.
+
+Call sites pass their chapter index: `chapter-01-tangle.tsx:246` passes `1`,
+`chapter-02-pedestal.tsx:32` passes `2`, `chapter-03-toolkit.tsx:77` passes `3`.
+
+No positions are authored, no collision avoidance is needed, and no labels are
+deleted. Once each label only renders during its own chapter, Ch03's six labels sit
+under their own six ring objects — which is the intended design — and every other
+scene has empty sky.
+
+Ch04 and the end scene contain no `InteractiveObject` and need no change.
 
 ---
 
@@ -276,8 +306,9 @@ with Playwright screenshots at 1440×900 and 390×844:
 1. **Seam test** — screenshot the canvas/section boundary; no visible edge
 2. **Accent audit** — `grep -r "brand" src/components` returns no rendered class usage
 3. **Alignment test** — left gutter guide at 1440px touches every heading and poem line
-4. **Label test** — screenshot intro, Ch01, Ch02, Ch04, end scene; no floating labels.
-   Screenshot Ch03; six labels, no overlap, no duplicates
+4. **Label test** — screenshot the intro, Ch04, and the end scene; no labels at all.
+   Screenshot Ch03; exactly six labels, each under its own object, no duplicates.
+   Screenshot Ch01 and Ch02; only that chapter's own labels present
 5. **Mobile nav test** — at 390px the menu button exists, opens, and all four links
    navigate
 6. **Header test** — scroll to 5,600px; no content passes through the header
