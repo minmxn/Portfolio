@@ -31,7 +31,7 @@ export function EndSceneOverlay() {
               href={site.socials.linkedin}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
+              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
             >
               LinkedIn
             </a>
@@ -39,13 +39,13 @@ export function EndSceneOverlay() {
               href={site.socials.github}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
+              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
             >
               GitHub
             </a>
             <a
               href={`mailto:${site.email}`}
-              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
+              className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
             >
               Email
             </a>

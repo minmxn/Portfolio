@@ -54,49 +54,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Light: warm newsprint paper, ink-black type, a vermillion spot color. */
+/* Night edition: the single theme. Deep, near-black canvas for the WebGL narrative. */
 :root {
-  --background: oklch(0.971 0.008 84);
-  --foreground: oklch(0.222 0.012 55);
-  --card: oklch(0.985 0.006 84);
-  --card-foreground: oklch(0.222 0.012 55);
-  --popover: oklch(0.985 0.006 84);
-  --popover-foreground: oklch(0.222 0.012 55);
-  --primary: oklch(0.222 0.012 55);
-  --primary-foreground: oklch(0.971 0.008 84);
-  --brand: oklch(0.505 0.174 26);
-  --brand-foreground: oklch(0.985 0.008 84);
-  --glow: oklch(0.72 0.15 220);
-  --glow-foreground: oklch(0.985 0.01 220);
-  --secondary: oklch(0.94 0.01 84);
-  --secondary-foreground: oklch(0.25 0.012 55);
-  --muted: oklch(0.936 0.012 82);
-  --muted-foreground: oklch(0.447 0.014 58);
-  --accent: oklch(0.92 0.014 74);
-  --accent-foreground: oklch(0.25 0.012 55);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.3 0.012 55 / 18%);
-  --input: oklch(0.3 0.012 55 / 22%);
-  --ring: oklch(0.505 0.174 26 / 55%);
-  --paper: oklch(0.971 0.008 84);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.4rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-/* Night edition: deep, near-black canvas for the WebGL narrative. */
-.dark {
   --background: oklch(0.145 0.012 260);
   --foreground: oklch(0.93 0.008 240);
   --card: oklch(0.185 0.014 258);
@@ -120,6 +79,7 @@
   --input: oklch(0.92 0.02 240 / 15%);
   --ring: oklch(0.78 0.15 218 / 55%);
   --paper: oklch(0.185 0.014 258);
+  --radius: 0.4rem;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -168,7 +128,7 @@
     );
   }
   /* Soft luminous halo behind glowing type/marks in the 3D narrative. */
-  .text-glow {
+  .glow-halo {
     text-shadow: 0 0 22px color-mix(in oklch, var(--glow) 55%, transparent);
   }
   /* Radial ambient light, used by the static (no-WebGL) fallback stage. */

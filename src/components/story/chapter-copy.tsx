@@ -12,7 +12,7 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
       data-label={beat.label}
       className="relative h-[100vh] pointer-events-none"
     >
-      <div className="sticky top-0 flex min-h-screen items-center px-6 md:pl-10 lg:pl-44">
+      <div className="sticky top-0 mx-auto flex min-h-screen max-w-6xl items-center px-6">
         <div className="animate-float w-full max-w-[420px] pointer-events-auto">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -36,7 +36,7 @@ export function ChapterCopy({ beat }: { beat: StoryBeat }) {
                   href={beat.cta.href}
                   target={beat.cta.external ? "_blank" : undefined}
                   rel={beat.cta.external ? "noreferrer" : undefined}
-                  className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
+                  className="inline-flex items-center gap-2 border border-glow/40 bg-glow/[0.06] px-5 py-2.5 font-sans text-xs font-semibold tracking-[0.15em] text-glow glow-halo uppercase backdrop-blur-sm transition-colors hover:bg-glow/[0.12]"
                 >
                   {beat.cta.label}
                 </a>

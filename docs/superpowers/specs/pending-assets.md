@@ -35,6 +35,125 @@
 
 - [x] Home `/` shining narrative rebuild shipped: book intro, four chapters (morph-target crystal, Nomo pedestal + torus-knot, six-icon toolkit ring, ascending pillar), end scene with contact chips. Gradient backdrop shader, hooded person silhouette character, Bloom + Vignette + Noise post-processing, six-section camera rig. StaticNarrative renders poem + prose fallback for reduced-motion users.
 
+- [x] One-theme unification shipped: single dark theme (light mode removed),
+  backdrop resolves to page background closing the canvas seam, cyan as sole
+  accent, editorial sections de-boxed, sections renamed into the journey's
+  language, 3D labels gated to their own chapter, mobile nav added.
+
+## Browser verification still needed — one-theme unification
+
+Automated browser checks (Playwright MCP) were unavailable throughout this
+project's implementation (Tasks 2, 3, 5–9, 10, 11, 12). `npx tsc --noEmit`
+and `npm run build` are clean, but nothing below has been visually confirmed
+in a real browser. Run `npm run dev` and work through this list before
+considering the redesign done.
+
+### Scroll 0 — intro (book-intro-overlay)
+
+- **Intro poem fade** ("Let's explore together…" + "Scroll" indicator): scroll
+  from 0 to ~1000px. The poem and scroll indicator should visibly fade to
+  fully transparent and not remain visible/overlapping once Chapter 01
+  content is in view. Task 11 added a wrapper div around `poemWrapRef`'s
+  element and the final-review fix wave removed it again, so the nesting is
+  back to its original shape — but the file was edited twice, so confirm the
+  opacity animation (driven by `poemWrapRef.current.style.opacity` in a
+  scroll handler) still fires correctly.
+- **No 3D labels**: at scroll 0, no floating `<Html>` labels from any chapter
+  object should be visible.
+
+### Canvas/section seam (all scroll positions, highest risk)
+
+- The backdrop shader's bottom color (`#0e1119`, in
+  `src/components/r3f/materials/backdrop-material.ts`) was only checked via
+  raw hex math against the CSS `--background` value — it was **never
+  empirically sampled against the live, ACES-tone-mapped + sRGB-encoded
+  render** (tone mapping is set at `scene.tsx:36`). A hairline seam at the
+  canvas/section boundary is plausible.
+  - How to check: open DevTools console, run
+    `getComputedStyle(document.body).backgroundColor` and compare against a
+    `gl.readPixels` sample of the canvas's bottom row (or simply screenshot
+    the seam and zoom in) at each chapter transition, especially where the
+    canvas meets a section background.
+  - Correct: no visible line/band of different color where canvas ends and
+    page background begins, at any scroll position, in the actual rendered
+    (tone-mapped) output.
+
+### Ch01 (~scroll 1,200)
+
+- Labels: only project-name labels for Ch01 objects, none from other
+  chapters bleeding in.
+
+### Ch02 (~scroll 2,000)
+
+- Labels: only `NOMO`, appearing exactly once (no duplicate "NOMO" label
+  stacked or offset from a leftover element).
+
+### Ch03 (~scroll 2,900)
+
+- Labels: exactly six labels, each positioned under its own ring object (not
+  floating unattached, not overlapping each other). This was the specific
+  bug fixed in Task 3 (drei `<Html>` ignoring Three.js `.visible`) —
+  regression-check this scroll position carefully.
+
+### Ch04 (~scroll 4,000) and end scene (~scroll 4,800 / 7,400)
+
+- No 3D labels should appear at either position.
+
+### Header, ~5,600px scroll (desktop 1440×900)
+
+- Header keeps its `bg-background/80 backdrop-blur-md` background while
+  scrolled (Task 10). Confirm no section content or rule lines visually
+  slice through the "Min Yi" wordmark or the nav links at this scroll depth.
+
+### Desktop auto-hide, 1440×900
+
+- Header fades out on scroll-down past ~80px, fades back in on scroll-up,
+  and becomes permanently visible once `#projects` scrolls into view — this
+  pre-existing behavior (driven by `header.style.opacity`) should be
+  unaffected by Task 10's new background classes.
+
+### Mobile menu, 390×844
+
+- No hamburger icon — a text "Menu" button, `md:hidden`.
+- Tapping "Menu" opens the overlay, label changes to "Close",
+  `aria-expanded` becomes `true`.
+- All four nav links appear, stacked/centered.
+- Closes on: clicking a link (and navigates), clicking the backdrop (no
+  navigation), and pressing Escape.
+- Header background at 390px: transparent at scroll 0, gains blur/dark
+  background once scrolled past ~24px, and while the menu is open even at
+  scroll 0.
+
+### Left-edge alignment, 1440×900
+
+- The chapter poem ("I gave the chaos a name…", Chapter 01) and the
+  editorial section headings (Projects, Certifications, Contact) should
+  share one left edge (~168px at 1440px width). Check in DevTools console:
+  ```js
+  const poem = document.querySelector('[data-label="What I do"] p.font-serif');
+  const heading = document.querySelector('#projects h2');
+  console.log(poem.getBoundingClientRect().left, heading.getBoundingClientRect().left);
+  ```
+  Both values should match within 1px.
+
+### General sweep, both 1440×900 and 390×844, scroll 0/1200/2500/4000/5600/7400
+
+- No vermillion/orange color anywhere on `/` (cyan is the sole accent now).
+  Known, accepted exception: `/projects/nomo` and `/projects/kling` still use
+  `--brand` (vermillion) for `.dropcap::first-letter` — those case-study
+  routes are deliberately out of scope for this branch, so don't flag it.
+- No boxed project tags, no bordered contact card, no certifications table
+  frame/column-header row/filled status chip.
+- Every section heading shares one left edge.
+- Nothing passes through or overlaps the header.
+- At 1440px, confirm the section kickers and cyan links render flat, with no
+  glow halo (only the 3D narrative — chapter CTAs, end-scene CTAs, the
+  chapter rail's active indicator, the static-narrative fallback — should
+  show the soft text-shadow bloom).
+- DevTools console: zero errors across a full scroll of the page. One
+  `THREE.Clock` → `THREE.Timer` deprecation **warning** is pre-existing and
+  out of scope — do not treat it as a failure.
+
 ## Done (kept for reference)
 
 - [x] `assets/Prince_Front.png` — Little Prince, front view.

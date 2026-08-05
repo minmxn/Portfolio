@@ -76,6 +76,7 @@ function IconMesh({
     <group ref={outerGroupRef} position={[baseX, baseY, baseZ]}>
       <InteractiveObject
         id={`ch03-${index}`}
+        chapterIndex={3}
         label={item.tool}
         logo={item.logo}
         story={item.story}
