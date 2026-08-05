@@ -53,10 +53,11 @@ considering the redesign done.
 - **Intro poem fade** ("Let's explore together…" + "Scroll" indicator): scroll
   from 0 to ~1000px. The poem and scroll indicator should visibly fade to
   fully transparent and not remain visible/overlapping once Chapter 01
-  content is in view. A wrapper div (`mx-auto max-w-6xl px-6`) was added
-  around `poemWrapRef`'s element in Task 11 — confirm the opacity animation
-  (driven by `poemWrapRef.current.style.opacity` in a scroll handler) still
-  fires correctly with the new ancestor in place.
+  content is in view. Task 11 added a wrapper div around `poemWrapRef`'s
+  element and the final-review fix wave removed it again, so the nesting is
+  back to its original shape — but the file was edited twice, so confirm the
+  opacity animation (driven by `poemWrapRef.current.style.opacity` in a
+  scroll handler) still fires correctly.
 - **No 3D labels**: at scroll 0, no floating `<Html>` labels from any chapter
   object should be visible.
 
