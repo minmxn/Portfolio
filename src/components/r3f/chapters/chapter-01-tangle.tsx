@@ -246,6 +246,7 @@ export function Chapter01Tangle({ tier }: { tier: CapabilityTier }) {
           <InteractiveObject
             key={proj.name}
             id={`ch01-${i}`}
+            chapterIndex={1}
             label={proj.name}
             story={proj.story}
             position={POSITIONS[i]}

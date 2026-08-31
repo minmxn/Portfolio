@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { site } from "@/content";
+import { getLenis } from "@/components/scroll/lenis-provider";
 
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -51,14 +54,70 @@ export function SiteHeader() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
 
+    const handleScrolledFlag = () => {
+      setScrolled(window.scrollY > 24);
+    };
+    handleScrolledFlag();
+    window.addEventListener("scroll", handleScrolledFlag, { passive: true });
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScrolledFlag);
       observer.disconnect();
     };
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  // If the viewport crosses into the md breakpoint while the mobile menu is
+  // open, the menu's button/overlay vanish (md:hidden) but menuOpen stays
+  // true, which would strand the header's scrolled background at scroll 0.
+  // menuOpen defaults to false, so there is nothing to reconcile on mount —
+  // only the crossing itself (the "change" event) needs to close it.
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setMenuOpen(false);
+    };
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  // Lock background scroll while the mobile menu is open. This site uses
+  // Lenis smooth scroll, so plain `overflow:hidden` on <body> isn't enough on
+  // its own — stop/start the shared Lenis instance instead, which also toggles
+  // the `.lenis-stopped` class the project's CSS already relies on.
+  useEffect(() => {
+    const lenis = getLenis();
+    if (menuOpen) {
+      lenis?.stop();
+      document.body.style.overflow = "hidden";
+    } else {
+      lenis?.start();
+      document.body.style.overflow = "";
+    }
+    return () => {
+      lenis?.start();
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
-    <header ref={headerRef} className="fixed top-0 z-50 w-full transition-opacity duration-[400ms]">
+    <header
+      ref={headerRef}
+      className={`fixed top-0 z-50 w-full transition-[opacity,background-color,backdrop-filter] duration-[400ms] ${
+        scrolled || menuOpen
+          ? "bg-background/80 backdrop-blur-md"
+          : "bg-transparent"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
         <Link
           href="/"
@@ -77,7 +136,35 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="font-sans text-xs tracking-[0.15em] text-muted-foreground uppercase transition-colors hover:text-glow md:hidden"
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
       </div>
+      {menuOpen && (
+        <div
+          className="fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur-md md:hidden"
+          onClick={() => setMenuOpen(false)}
+        >
+          <nav className="flex flex-col items-center gap-8 pt-20">
+            {site.nav.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="font-display text-2xl font-bold tracking-tight text-foreground"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

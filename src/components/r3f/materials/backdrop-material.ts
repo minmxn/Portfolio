@@ -11,14 +11,22 @@ const TOP_COLORS = [
   new THREE.Color("#083545"),
   new THREE.Color("#1c1a55"),
   new THREE.Color("#2a1560"),
-  new THREE.Color("#081033"),
+  // Raw sRGB conversion of CSS --background (oklch(0.145 0.012 260)) = #0e1119.
+  // This has NOT been empirically verified against tone-mapped canvas output —
+  // gl.toneMapping = THREE.ACESFilmicToneMapping (scene.tsx:36) is expected to
+  // shift the rendered value darker/desaturated relative to this raw hex, so a
+  // hairline may still be visible at the seam. A human must sample the live
+  // canvas and nudge this value before merge; do not assume it is already
+  // correct just because the hex math agrees with --background.
+  new THREE.Color("#0e1119"),
 ];
 const BOT_COLORS = [
   new THREE.Color("#04081a"),
   new THREE.Color("#1a0940"),
   new THREE.Color("#4a1f3d"),
   new THREE.Color("#5a2a5c"),
-  new THREE.Color("#b76e79"),
+  // See TOP_COLORS final entry: same unverified raw conversion, same caveat.
+  new THREE.Color("#0e1119"),
 ];
 const STOPS = [0.0, 0.2, 0.45, 0.7, 1.0];
 

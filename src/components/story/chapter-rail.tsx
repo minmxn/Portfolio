@@ -42,7 +42,7 @@ export function ChapterRail({ labels }: { labels: string[] }) {
             <span
               className={cn(
                 "pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 whitespace-nowrap font-sans text-[0.65rem] font-semibold tracking-[0.2em] uppercase opacity-0 transition-opacity duration-150 group-hover:opacity-100",
-                isActive ? "text-glow" : "text-muted-foreground/60",
+                isActive ? "text-glow glow-halo" : "text-muted-foreground/60",
               )}
             >
               {label}

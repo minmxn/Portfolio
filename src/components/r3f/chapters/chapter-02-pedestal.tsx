@@ -31,6 +31,7 @@ export function Chapter02Pedestal({ tier: _tier }: { tier: CapabilityTier }) {
     <group ref={group} position={[-0.6, -0.2, 0]} scale={0.001}>
       <InteractiveObject
         id="ch02-nomo"
+        chapterIndex={2}
         label="Nomo"
         story="Built Nomo from zero. Designed in Figma, shipped in React. Proof that I don't just write specs."
         position={[0, 0, 0]}

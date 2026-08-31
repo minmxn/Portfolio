@@ -6,6 +6,7 @@ import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { getActiveCrack, setActiveCrack } from "@/components/r3f/interaction-state";
 import { StoryCard } from "@/components/r3f/story-card";
+import { scrollState } from "@/components/scroll/scroll-state";
 
 // ---------------------------------------------------------------------------
 // BeaconRing — pulsing radial ring that signals "this object is clickable"
@@ -97,6 +98,14 @@ export type InteractiveObjectProps = {
    * InteractiveObject adds its open-burst on top: final = baseEmissiveRef.current + scaleRef * 1.8.
    */
   baseEmissiveRef?: React.MutableRefObject<number>;
+  /**
+   * Which narrative section (0=intro, 1-4=chapters, 5=end) this object belongs
+   * to. The <Html> label renders only while this section is the active one
+   * (scrollState.chapter === chapterIndex) — drei's <Html> ignores Three.js
+   * .visible, so without this gate every chapter's labels render on every
+   * scene at once, both before and after their own chapter.
+   */
+  chapterIndex: number;
 };
 
 export function InteractiveObject({
@@ -112,12 +121,15 @@ export function InteractiveObject({
   emissive = "#4499cc",
   baseEmissive = 0.3,
   baseEmissiveRef,
+  chapterIndex,
 }: InteractiveObjectProps) {
   const meshGroupRef = useRef<THREE.Group>(null);
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const scaleRef = useRef(0);
   const cardVisRef = useRef(false);
   const [showCard, setShowCard] = useState(false);
+  const labelVisRef = useRef(false);
+  const [showLabel, setShowLabel] = useState(false);
 
   useEffect(() => {
     return () => { document.body.style.cursor = "auto"; };
@@ -141,6 +153,14 @@ export function InteractiveObject({
     if (shouldShow !== cardVisRef.current) {
       cardVisRef.current = shouldShow;
       setShowCard(shouldShow);
+    }
+
+    // Only show the label while this object's section is the active one —
+    // otherwise it stays visible forever once its chapter has passed.
+    const labelVisible = scrollState.chapter === chapterIndex;
+    if (labelVisible !== labelVisRef.current) {
+      labelVisRef.current = labelVisible;
+      setShowLabel(labelVisible);
     }
   });
 
@@ -176,6 +196,7 @@ export function InteractiveObject({
 
       <BeaconRing id={id} objectRadius={objectRadius} />
 
+      {showLabel && (
       <Html position={[0, objectRadius + 0.25, 0]} center>
         <>
           <style>{`
@@ -197,6 +218,7 @@ export function InteractiveObject({
           </div>
         </>
       </Html>
+      )}
 
       {showCard && (
         <Html position={[0, objectRadius + 0.65, 0]} center>
