@@ -1,5 +1,6 @@
 import { Mail } from "lucide-react";
 import { LinkedinIcon } from "@/components/icons";
+import { ContactCta } from "@/components/contact-cta";
 import { SectionHeading } from "@/components/editorial/section-heading";
 import { contact, edition, site } from "@/content";
 
@@ -12,6 +13,9 @@ export function Contact() {
         <p className="font-serif max-w-2xl text-xl leading-relaxed md:text-2xl">
           {contact.blurb}
         </p>
+        <div className="mt-8">
+          <ContactCta email={site.email} />
+        </div>
         <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 font-sans text-xs tracking-[0.08em]">
           <a
             href={`mailto:${site.email}`}
